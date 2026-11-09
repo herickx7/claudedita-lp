@@ -23,11 +23,15 @@ const store = {
   get() { try { return JSON.parse(localStorage.getItem("ce_state") || "null"); } catch { return null; } },
   set(v) { try { localStorage.setItem("ce_state", JSON.stringify(v)); } catch {} },
 };
-const state = Object.assign({ step: 0, answers: {}, lead: null, bumps: [], idea: "", utm: {} }, store.get() || {});
 const params = new URLSearchParams(location.search);
+// ?reset=1 apaga o progresso salvo (útil pra testar). Progresso com mais de 12h também recomeça do início.
+if (params.get("reset")) { try { localStorage.removeItem("ce_state"); } catch {} }
+const saved = store.get();
+if (saved && (!saved.ts || Date.now() - saved.ts > 12 * 3600 * 1000)) { saved.step = 0; saved.bumps = []; }
+const state = Object.assign({ step: 0, answers: {}, lead: null, bumps: [], idea: "", utm: {} }, saved || {});
 if (params.get("cupom")) state.coupon = params.get("cupom").trim().toUpperCase().slice(0, 30);
 ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"].forEach((k) => { if (params.get(k)) state.utm[k] = params.get(k); });
-const save = () => store.set(state);
+const save = () => { state.ts = Date.now(); store.set(state); };
 let catalog = null;
 
 // ---------- som 8-bit (WebAudio, sem arquivos) ----------
@@ -50,6 +54,9 @@ const sfx = {
   error: () => { tone(120, 0.15, 0, "square", 0.08); tone(110, 0.2, 0.17, "square", 0.08); },
 };
 function setMuteIcon() { $("#mute").textContent = muted ? "🔇" : "🔊"; }
+$(".brand").style.cursor = "pointer";
+$(".brand").title = "Recomeçar";
+$(".brand").addEventListener("click", () => { state.step = 0; state.bumps = []; save(); render(); window.scrollTo(0, 0); });
 $("#mute").addEventListener("click", () => { muted = !muted; try { localStorage.setItem("ce_mute", muted ? "1" : "0"); } catch {} setMuteIcon(); sfx.blip(); });
 setMuteIcon();
 
