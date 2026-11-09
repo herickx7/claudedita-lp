@@ -8,7 +8,7 @@ Depois disso, sozinho e sem você fazer nada:
 ## 1. Suba os produtos no Google Drive
 1. Crie uma pasta no Drive e envie os arquivos: `pixel-reel-editor.zip`, `pack-300-prompts.zip`, `chiptune-sfx-generator.zip`, `pixel-templates.zip`.
 2. Em cada arquivo: botão direito → **Compartilhar** → "Qualquer pessoa com o link" (Leitor) → **Copiar link**.
-3. Cole cada link no arquivo `lib/entrega.js` (troque os `COLE_AQUI...`). No `vip`, cole o link de convite do grupo do WhatsApp.
+3. Cole cada link no arquivo `lib/entrega.js` (troque os `COLE_AQUI...`). No `vip`, cole o link de convite do servidor do Discord (de preferência um convite que não expira).
 
 ## 2. Crie a planilha
 1. Crie uma planilha nova no Google Sheets (com a mesma conta Gmail que vai enviar os e-mails).

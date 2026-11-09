@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   if (lead.errors.length) return res.status(400).json({ error: "invalid", fields: lead.errors });
 
   const ids = Array.isArray(req.body.items) ? req.body.items : [];
-  const order = computeOrder(ids);
+  const order = computeOrder(ids, req.body.coupon);
   const ref = "CE-" + Date.now().toString(36).toUpperCase() + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
   const base = baseUrl(req);
   const extras = order.items.length - 1;
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       excluded_payment_types: [{ id: "ticket" }], // sem boleto: só Pix e cartão
       installments: Number(process.env.MAX_INSTALLMENTS || 12),
     },
-    metadata: { name: lead.name, email: lead.email, whatsapp: "+55" + lead.whatsapp, items: order.items.map((i) => i.id).join(","), total: order.total, ref },
+    metadata: { coupon: order.coupon, name: lead.name, email: lead.email, whatsapp: "+55" + lead.whatsapp, items: order.items.map((i) => i.id).join(","), total: order.total, ref },
   };
 
   try {
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     }
     await postJSON(process.env.LEAD_WEBHOOK_URL, {
       event: "checkout_iniciado", ref, name: lead.name, email: lead.email, whatsapp: "+55" + lead.whatsapp,
-      items: order.items.map((i) => i.id), total: order.total, at: new Date().toISOString(),
+      items: order.items.map((i) => i.id), total: order.total, cupom: order.coupon, at: new Date().toISOString(),
     });
     const sandbox = String(token).startsWith("TEST-");
     res.status(200).json({ url: sandbox ? data.sandbox_init_point : data.init_point, ref, total: order.total });

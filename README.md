@@ -30,6 +30,7 @@ Siga `automacao/COMO-CONFIGURAR.md`: links dos produtos em `lib/entrega.js`, pla
 - `DELIVERY_WEBHOOK_URL`: recebe **só pagamentos aprovados**, com nome, e-mail, WhatsApp e itens comprados. Use pra disparar o acesso no WhatsApp/e-mail automaticamente.
 - `MP_WEBHOOK_SECRET`: assinatura secreta do webhook (Mercado Pago → Webhooks). Se preencher, as notificações falsas são recusadas.
 - `MAX_INSTALLMENTS`: máximo de parcelas (padrão 12).
+- `COUPONS`: cupons secretos em JSON, ex. `{"TESTE99":99,"AMIGO20":20}`. Funcionam só por link: `seusite.vercel.app/?cupom=TESTE99`. Valor mínimo cobrado: R$ 1,00.
 
 O webhook do Mercado Pago já é configurado sozinho em cada pagamento (`/api/webhook`).
 

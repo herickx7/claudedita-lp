@@ -25,6 +25,7 @@ const store = {
 };
 const state = Object.assign({ step: 0, answers: {}, lead: null, bumps: [], idea: "", utm: {} }, store.get() || {});
 const params = new URLSearchParams(location.search);
+if (params.get("cupom")) state.coupon = params.get("cupom").trim().toUpperCase().slice(0, 30);
 ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"].forEach((k) => { if (params.get(k)) state.utm[k] = params.get(k); });
 const save = () => store.set(state);
 let catalog = null;
@@ -353,8 +354,11 @@ function order() {
   const chosen = c.bumps.filter((b) => set.has(b.id));
   const all = c.bumps.length > 0 && chosen.length === c.bumps.length;
   const disc = all ? c.comboDiscount : 0;
-  const total = Math.round((c.main.price + chosen.reduce((s, b) => s + b.price, 0) - disc) * 100) / 100;
-  return { chosen, disc, total, all };
+  let total = Math.round((c.main.price + chosen.reduce((s, b) => s + b.price, 0) - disc) * 100) / 100;
+  const pct = state.couponPct || 0;
+  const couponOff = pct ? Math.round(total * pct) / 100 : 0;
+  total = Math.max(1, Math.round((total - couponOff) * 100) / 100);
+  return { chosen, disc, total, all, couponOff, pct };
 }
 screens.oferta = () => {
   const c = catalog || FALLBACK_CATALOG; const L = state.lead || {};
@@ -403,6 +407,7 @@ function updateOrder(flash) {
     <div class="row"><span>${esc(c.main.name)}</span><span>${brl(c.main.price)}</span></div>
     ${o.chosen.map((b) => `<div class="row"><span>${esc(b.name)}</span><span>${brl(b.price)}</span></div>`).join("")}
     ${o.disc ? `<div class="row disc"><span>Desconto combo completo</span><span>−${brl(o.disc)}</span></div>` : ""}
+    ${o.couponOff ? `<div class="row disc"><span>Cupom ${esc(state.coupon)} (−${o.pct}%)</span><span>−${brl(o.couponOff)}</span></div>` : ""}
     <div class="tot"><span>Total</span><strong>${brl(o.total)}</strong></div>`;
   const combo = $("#combo");
   if (combo) {
@@ -455,7 +460,7 @@ async function checkout() {
   fbq("track", "InitiateCheckout", { value: o.total, currency: "BRL" });
   try { sessionStorage.setItem("ce_total", String(o.total)); } catch {}
   try {
-    const r = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...state.lead, items: state.bumps }) });
+    const r = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...state.lead, items: state.bumps, coupon: state.couponPct ? state.coupon : "" }) });
     const data = await r.json().catch(() => ({}));
     if (!r.ok || !data.url) {
       if (data.fields) { toast("Confere seus dados antes de pagar."); return go(5); }
@@ -486,5 +491,11 @@ function render() {
   if (params.get("pagamento") === "falhou" && state.lead) state.step = 6;
   else if (state.step > 0 && state.step < 6 && !params.get("continuar")) state.step = state.step; // retoma onde parou
   try { const r = await fetch("/api/catalog"); if (r.ok) catalog = await r.json(); } catch {}
+  state.couponPct = 0;
+  if (state.coupon) {
+    try { const r = await fetch("/api/cupom?code=" + encodeURIComponent(state.coupon)); const d = await r.json(); state.couponPct = d.valid ? d.pct : 0; } catch {}
+    if (!state.couponPct) state.coupon = "";
+    save();
+  }
   render();
 })();
