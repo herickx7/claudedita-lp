@@ -89,9 +89,9 @@ const screens = {};
 
 screens.hero = () => `
   <section class="screen">
-    ${caption("Esse anúncio foi", "EDITADO POR IA")}
-    ${panel("anuncio_claudedita.mp4", `<div class="player"><video id="vid" src="/assets/anuncio.mp4" poster="/assets/anuncio-capa.jpg" autoplay muted loop playsinline preload="metadata"></video><button class="unmute" id="unmute">🔊 TOQUE PRA OUVIR</button></div>`)}
-    <p class="lead">Sem editor, sem programa caro e <b>sem saber editar</b>. Em 1 minuto eu te mostro como funciona e você ainda <b>testa a IA aqui mesmo</b>.</p>
+    ${caption("Você viu o anúncio.", "AGORA OLHA ISSO")}
+    ${panel("vitrine_3_nichos.mp4", `<div class="player"><video id="vid" src="/assets/vitrine.mp4" poster="/assets/vitrine-capa.jpg" autoplay muted loop playsinline preload="metadata"></video><button class="unmute" id="unmute">🔊 TOQUE PRA OUVIR</button></div>`)}
+    <p class="lead"><b>3 nichos diferentes</b>: curiosidade, negócio local e fitness. Todos com o mesmo método e <b>sem editar nada na mão</b>. Em 1 minuto eu te mostro como funciona, e você ainda <b>testa a IA aqui mesmo</b>.</p>
     <button class="btn pulse" data-next>QUERO VER COMO →</button>
     <div class="sub">4 fases · 60 segundos · grátis</div>
   </section>`;

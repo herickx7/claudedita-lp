@@ -2,7 +2,7 @@
 
 Página interativa que aquece o lead em 4 fases e manda pro pagamento:
 
-1. **Abertura**: o anúncio editado por IA (`assets/anuncio.mp4`)
+1. **Abertura**: vitrine com 3 vídeos de nichos diferentes (`assets/vitrine.mp4`), diferente do anúncio que leva a pessoa até a página
 2. **Fase 1**: quiz (quem é você + maior trava), com resposta personalizada pra cada opção
 3. **Fase 2**: calculadora do quanto custa ter vídeo bom todo mês
 4. **Fase 3**: demo ao vivo: a pessoa digita uma ideia e recebe roteiro, cenas e 3 ganchos pra copiar
@@ -34,7 +34,7 @@ O webhook do Mercado Pago já é configurado sozinho em cada pagamento (`/api/we
 - **Textos do funil, perguntas e respostas do quiz, FAQ** → `app.js`
 - **Meta Pixel** → `PIXEL_ID` no topo de `app.js` e de `obrigado.html`
 - **WhatsApp de suporte na página de obrigado** → `SUPPORT_WHATSAPP` em `obrigado.html`
-- **Vídeo** → troque `assets/anuncio.mp4` pela versão com a sua voz (vertical, de preferência com menos de 5 MB)
+- **Vídeo da abertura** → `assets/vitrine.mp4` (vertical, de preferência com menos de 5 MB). Não use o mesmo vídeo do anúncio: quem chega já viu.
 - **Cores** → variáveis no topo de `styles.css`
 
 ## Estrutura
