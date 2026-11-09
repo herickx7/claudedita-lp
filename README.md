@@ -21,8 +21,12 @@ Página interativa que aquece o lead em 4 fases e manda pro pagamento:
 
 Pra testar sem cobrar de verdade, use o Access Token de **teste** (`TEST-...`): o site abre automaticamente o checkout de sandbox.
 
+### Entrega automática e planilha
+Siga `automacao/COMO-CONFIGURAR.md`: links dos produtos em `lib/entrega.js`, planilha Google com Apps Script recebendo leads, pedidos e pagamentos, e e-mail de acesso automático.
+
 ### Variáveis opcionais (veja `.env.example`)
-- `LEAD_WEBHOOK_URL`: recebe cada lead, cada checkout iniciado e cada status de pagamento (ligue no Make, n8n, Zapier ou numa planilha).
+- `LEAD_WEBHOOK_URL`: recebe cada lead, cada checkout iniciado e cada status de pagamento. Use a URL da planilha (Apps Script) do guia de automação.
+- `WEBHOOK_TOKEN`: senha que a planilha confere para aceitar os dados.
 - `DELIVERY_WEBHOOK_URL`: recebe **só pagamentos aprovados**, com nome, e-mail, WhatsApp e itens comprados. Use pra disparar o acesso no WhatsApp/e-mail automaticamente.
 - `MP_WEBHOOK_SECRET`: assinatura secreta do webhook (Mercado Pago → Webhooks). Se preencher, as notificações falsas são recusadas.
 - `MAX_INSTALLMENTS`: máximo de parcelas (padrão 12).
@@ -45,6 +49,9 @@ api/catalog.js                     → entrega o catálogo pro site
 api/lead.js                        → recebe o lead
 api/checkout.js                    → cria a cobrança no Mercado Pago (valor final)
 api/webhook.js                     → confirma o pagamento e dispara a entrega
+api/acesso.js                      → libera os links na página de obrigado (só se o pagamento estiver aprovado)
+lib/entrega.js                     → links de entrega de cada produto
+automacao/                         → planilha + e-mail automático (Google Apps Script)
 lib/catalog.js                     → preços
 assets/                            → vídeo, avatares, fontes
 ```

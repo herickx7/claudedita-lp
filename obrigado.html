@@ -3,13 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>claudedita — pedido recebido</title>
+  <title>claudedita — seu acesso</title>
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .dl { display: flex; align-items: center; gap: 10px; background: var(--panel2); border: 3px solid var(--dark); box-shadow: var(--sh); padding: 14px; margin: 10px 0; color: var(--white); text-decoration: none; font-weight: 700; }
+    .dl span { flex: 1; } .dl b { font-family: "Mono"; font-size: 12px; background: var(--yel); color: var(--dark); padding: 6px 8px; }
+    .dl.off { opacity: .5; pointer-events: none; }
+  </style>
 </head>
 <body>
   <div class="bg" aria-hidden="true"></div>
-  <header class="hud"><div class="brand">claudedita</div><div class="xp"><span class="xp-lvl">LV MAX</span><div class="xp-bar"><div class="xp-fill" style="width:100%"></div></div></div></header>
+  <header class="hud"><div class="brand">claudedita</div><div class="xp"><span class="xp-lvl" id="lvl">LV 7</span><div class="xp-bar"><div class="xp-fill" id="xpf" style="width:90%"></div></div></div></header>
   <main class="stage" id="stage"></main>
   <script>
     // (opcional) mesmo ID do Meta Pixel usado no app.js
@@ -18,36 +23,67 @@
     const SUPPORT_WHATSAPP = "";
 
     const q = new URLSearchParams(location.search);
-    const ok = q.get("status") === "aprovado";
+    const pid = (q.get("payment_id") || q.get("collection_id") || "").replace(/\D/g, "");
     const ref = (q.get("ref") || q.get("external_reference") || "").replace(/[^\w-]/g, "");
-    let lead = {}; try { lead = (JSON.parse(localStorage.getItem("ce_state")) || {}).lead || {}; } catch {}
-    const first = (lead.name || "").split(" ")[0];
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const sup = SUPPORT_WHATSAPP ? `<a class="btn" style="margin-top:14px" href="https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Oi! Fiz o pedido " + ref + " no claudedita.")}">FALAR NO WHATSAPP</a>` : "";
-    document.getElementById("stage").innerHTML = ok ? `
-      <section class="screen">
-        <h1 class="cap1">${first ? esc(first) + ", " : ""}você</h1><div class="cap2">ZEROU O JOGO!</div>
-        <div class="coach"><img src="/assets/avatar-thumb.png" alt="" width="96"><div class="bubble">Pagamento <b>aprovado</b>! 🎉 Seu acesso está indo pro seu <b>WhatsApp</b> e e-mail agora.</div></div>
-        <div class="panel"><div class="panel-top"><i></i><i></i><i></i>proximos_passos.txt</div><div class="panel-body" style="line-height:1.6">
-          1. Abre o WhatsApp e salva nosso contato.<br>2. Confere também seu e-mail (e a caixa de spam).<br>3. Começa pelo módulo 1 hoje mesmo.
-          ${ref ? `<div class="sub" style="text-align:left">pedido: ${esc(ref)}</div>` : ""}
-        </div></div>${sup}
-      </section>` : `
-      <section class="screen">
-        <h1 class="cap1">Quase lá!</h1><div class="cap2">FALTA PAGAR</div>
-        <div class="coach"><img src="/assets/avatar-point.png" alt="" width="96"><div class="bubble">Seu pedido foi criado, mas o pagamento ainda está <b>pendente</b>. Se escolheu Pix, é só pagar o código. Assim que cair, o acesso vai pro seu <b>WhatsApp</b>.</div></div>
-        ${ref ? `<div class="sub">pedido: ${esc(ref)}</div>` : ""}${sup}
-        <a class="btn" href="/" style="margin-top:14px">VOLTAR PRA OFERTA</a>
-      </section>`;
-    if (ok) {
+    const $st = document.getElementById("stage");
+    const sup = SUPPORT_WHATSAPP ? `<a class="btn" style="margin-top:14px" href="https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Oi! Preciso de ajuda com o pedido " + ref + " (claudedita).")}">FALAR COM O SUPORTE</a>` : "";
+
+    function approved(d) {
+      document.getElementById("lvl").textContent = "LV MAX"; document.getElementById("xpf").style.width = "100%";
+      const links = (d.acessos || []).map((a) => {
+        const ok = /^https?:\/\//.test(a.url);
+        return `<a class="dl ${ok ? "" : "off"}" href="${ok ? esc(a.url) : "#"}" target="_blank" rel="noopener"><span>${esc(a.label)}</span><b>${ok ? "ABRIR" : "EM BREVE"}</b></a>`;
+      }).join("");
+      $st.innerHTML = `
+        <section class="screen">
+          <h1 class="cap1">${d.nome ? esc(d.nome) + ", você" : "Você"}</h1><div class="cap2">ZEROU O JOGO!</div>
+          <div class="coach"><img src="/assets/avatar-thumb.png" alt="" width="96"><div class="bubble">Pagamento <b>aprovado</b>! 🎉 Seus acessos estão aqui embaixo e também foram para o e-mail <b>${esc(d.email || "cadastrado")}</b>.</div></div>
+          <div class="phase">🎁 SEUS ITENS</div>${links}
+          ${d.guia ? `<a class="btn" href="${esc(d.guia)}" target="_blank" rel="noopener" style="margin-top:14px">COMO INSTALAR A SKILL NO CLAUDE</a>` : ""}
+          <div class="panel"><div class="panel-top"><i></i><i></i><i></i>proximos_passos.txt</div><div class="panel-body" style="line-height:1.6">
+            1. Baixe os arquivos e guarde num lugar fácil.<br>2. Suba o <b>pixel-reel-editor.zip</b> no Claude (área de Skills).<br>3. Peça: "faz um vídeo nesse estilo sobre [seu tema]".
+            ${d.ref ? `<div class="sub" style="text-align:left">pedido: ${esc(d.ref)}</div>` : ""}
+          </div></div>${sup}
+        </section>`;
       try { const s = JSON.parse(localStorage.getItem("ce_state")) || {}; s.step = 0; s.bumps = []; localStorage.setItem("ce_state", JSON.stringify(s)); } catch {}
-      if (PIXEL_ID) {
+      if (PIXEL_ID && !sessionStorage.getItem("ce_px_" + pid)) {
         !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-        fbq("init", PIXEL_ID);
-        let v = 0; try { v = Number(sessionStorage.getItem("ce_total")) || 0; } catch {}
-        fbq("track", "Purchase", { value: v, currency: "BRL" });
+        fbq("init", PIXEL_ID); let v = 0; try { v = Number(sessionStorage.getItem("ce_total")) || 0; } catch {}
+        fbq("track", "Purchase", { value: v, currency: "BRL" }); sessionStorage.setItem("ce_px_" + pid, "1");
       }
     }
+    function waiting(msg) {
+      $st.innerHTML = `
+        <section class="screen">
+          <h1 class="cap1">Quase lá!</h1><div class="cap2">AGUARDANDO</div>
+          <div class="coach"><img src="/assets/avatar-point.png" alt="" width="96"><div class="bubble">${msg}</div></div>
+          <div class="progress"><div id="pg" style="width:10%"></div></div>
+          ${ref ? `<div class="sub">pedido: ${esc(ref)}</div>` : ""}${sup}
+        </section>`;
+    }
+    function failed() {
+      $st.innerHTML = `
+        <section class="screen">
+          <h1 class="cap1">Ops...</h1><div class="cap2">NÃO PASSOU</div>
+          <div class="coach"><img src="/assets/avatar-sad.png" alt="" width="96"><div class="bubble">O pagamento não foi aprovado. Tenta de novo, de preferência no <b>Pix</b>, que aprova na hora.</div></div>
+          <a class="btn" href="/?pagamento=falhou">TENTAR DE NOVO</a>${sup}
+        </section>`;
+    }
+
+    async function check(tries = 0) {
+      if (!pid) return waiting("Recebemos seu pedido. Assim que o pagamento for confirmado, o acesso chega no seu <b>e-mail</b>. Se pagou no Pix, pode levar alguns minutos.");
+      try {
+        const r = await fetch("/api/acesso?payment_id=" + pid); const d = await r.json();
+        if (d.status === "approved") return approved(d);
+        if (["rejected", "cancelled", "refunded", "charged_back"].includes(d.status)) return failed();
+        if (tries === 0) waiting("Seu pedido foi criado. Se escolheu <b>Pix</b>, é só pagar o código: esta tela libera o acesso <b>sozinha</b> quando o pagamento cair.");
+        const pg = document.getElementById("pg"); if (pg) pg.style.width = Math.min(95, 10 + tries * 2.5) + "%";
+        if (tries < 36) setTimeout(() => check(tries + 1), 5000); // confere por até 3 minutos
+        else waiting("Ainda não recebemos a confirmação. Sem problema: quando o pagamento cair, o acesso chega no seu <b>e-mail</b> automaticamente.");
+      } catch { if (tries < 36) setTimeout(() => check(tries + 1), 5000); }
+    }
+    check();
   </script>
 </body>
 </html>

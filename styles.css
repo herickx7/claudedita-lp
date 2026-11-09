@@ -63,8 +63,9 @@ body {
 .panel-body { padding: 14px; }
 
 /* video */
-.player { position: relative; aspect-ratio: 9/16; max-height: 62dvh; margin: 0 auto; background: #000; overflow: hidden; }
-.player video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.player { position: relative; width: 100%; max-width: calc(62vh * 9 / 16); min-width: 200px; margin: 0 auto; background: #000 center / cover no-repeat; overflow: hidden; }
+.player::before { content: ""; display: block; padding-top: 177.78%; } /* 9:16 sem depender de aspect-ratio (iPhone antigo) */
+.player video, .player img.fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .unmute { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: var(--yel); color: var(--dark); border: 3px solid var(--dark); box-shadow: var(--sh); font: 700 13px "Pop"; padding: 8px 14px; cursor: pointer; animation: pulse 1.2s infinite; white-space: nowrap; }
 
 /* buttons */

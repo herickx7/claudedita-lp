@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { postJSON } from "../lib/validate.js";
+import { acessosDe, GUIA_INSTALACAO } from "../lib/entrega.js";
 
 // Notificações do Mercado Pago. Consulta o pagamento direto na API (não confia no corpo)
 // e, quando aprovado, avisa DELIVERY_WEBHOOK_URL pra liberar o acesso (WhatsApp/e-mail).
@@ -36,9 +37,12 @@ export default async function handler(req, res) {
       ref: p.external_reference, name: m.name, email: m.email || (p.payer && p.payer.email), whatsapp: m.whatsapp,
       items: m.items ? String(m.items).split(",") : [], at: new Date().toISOString(),
     };
+    if (p.status === "approved") { payload.acessos = acessosDe(payload.items); payload.guia = GUIA_INSTALACAO; }
     console.log("PAGAMENTO", JSON.stringify(payload));
-    if (p.status === "approved") await postJSON(process.env.DELIVERY_WEBHOOK_URL, payload);
+    // um único endereço já basta (a planilha registra e entrega); DELIVERY_WEBHOOK_URL é opcional e separado
     await postJSON(process.env.LEAD_WEBHOOK_URL, payload);
+    if (p.status === "approved" && process.env.DELIVERY_WEBHOOK_URL && process.env.DELIVERY_WEBHOOK_URL !== process.env.LEAD_WEBHOOK_URL)
+      await postJSON(process.env.DELIVERY_WEBHOOK_URL, payload);
   } catch (e) {
     console.error(e);
   }

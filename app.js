@@ -90,13 +90,22 @@ const screens = {};
 screens.hero = () => `
   <section class="screen">
     ${caption("Você viu o anúncio.", "AGORA OLHA ISSO")}
-    ${panel("vitrine_3_nichos.mp4", `<div class="player"><video id="vid" src="/assets/vitrine.mp4" poster="/assets/vitrine-capa.jpg" autoplay muted loop playsinline preload="metadata"></video><button class="unmute" id="unmute">🔊 TOQUE PRA OUVIR</button></div>`)}
+    ${panel("vitrine_3_nichos.mp4", `<div class="player" style="background-image:url(/assets/vitrine-capa.jpg)"><video id="vid" poster="/assets/vitrine-capa.jpg" autoplay muted loop playsinline webkit-playsinline preload="auto" width="540" height="960"><source src="/assets/vitrine-v3.mp4" type="video/mp4"></video><button class="unmute" id="unmute">🔊 TOQUE PRA OUVIR</button></div>`)}
     <p class="lead"><b>3 nichos diferentes</b>: curiosidade, negócio local e fitness. Todos com o mesmo método e <b>sem editar nada na mão</b>. Em 1 minuto eu te mostro como funciona, e você ainda <b>testa a IA aqui mesmo</b>.</p>
     <button class="btn pulse" data-next>QUERO VER COMO →</button>
     <div class="sub">4 fases · 60 segundos · grátis</div>
   </section>`;
 screens.hero.mount = () => {
   const v = $("#vid"), u = $("#unmute");
+  v.muted = true; // alguns navegadores só fazem autoplay se o muted vier pelo JS
+  const tryPlay = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+  tryPlay(); document.addEventListener("touchstart", tryPlay, { once: true, passive: true });
+  const fail = () => { // se o vídeo não carregar, mostra a capa no lugar e o toque abre o vídeo direto
+    if (v.dataset.failed) return; v.dataset.failed = "1";
+    v.insertAdjacentHTML("afterend", `<img class="fallback" src="/assets/vitrine-capa.jpg" alt="Exemplos de vídeos">`);
+    u.textContent = "▶ VER OS EXEMPLOS"; u.onclick = () => window.open("/assets/vitrine-v3.mp4", "_blank");
+  };
+  v.addEventListener("error", fail, true); v.querySelector("source").addEventListener("error", fail);
   u.addEventListener("click", () => { v.muted = false; v.currentTime = 0; v.play(); u.remove(); });
 };
 
