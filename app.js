@@ -4,7 +4,7 @@
 // ============================================================
 
 // (opcional) ID do seu Meta Pixel para rastrear Lead / InitiateCheckout / Purchase
-const PIXEL_ID = "";
+const PIXEL_ID = "1441261254273109";
 
 const STEPS = ["hero", "perfil", "trava", "conta", "demo", "lead", "oferta"];
 const FALLBACK_CATALOG = {
