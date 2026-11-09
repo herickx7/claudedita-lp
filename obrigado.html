@@ -11,11 +11,29 @@
     .dl span { flex: 1; } .dl b { font-family: "Mono"; font-size: 12px; background: var(--yel); color: var(--dark); padding: 6px 8px; }
     .dl.off { opacity: .5; pointer-events: none; }
   </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1441261254273109');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1441261254273109&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
   <div class="bg" aria-hidden="true"></div>
   <header class="hud"><div class="brand">claudedita</div><div class="xp"><span class="xp-lvl" id="lvl">LV 7</span><div class="xp-bar"><div class="xp-fill" id="xpf" style="width:90%"></div></div></div></header>
   <main class="stage" id="stage"></main>
+  <footer class="foot"><a href="/privacidade">Política de Privacidade</a> · <a href="/termos">Termos de Uso</a></footer>
   <script>
     // (opcional) mesmo ID do Meta Pixel usado no app.js
     const PIXEL_ID = "1441261254273109";
@@ -47,9 +65,8 @@
           </div></div>${sup}
         </section>`;
       try { const s = JSON.parse(localStorage.getItem("ce_state")) || {}; s.step = 0; s.bumps = []; localStorage.setItem("ce_state", JSON.stringify(s)); } catch {}
-      if (PIXEL_ID && !sessionStorage.getItem("ce_px_" + pid)) {
-        !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-        fbq("init", PIXEL_ID); let v = 0; try { v = Number(sessionStorage.getItem("ce_total")) || 0; } catch {}
+      if (PIXEL_ID && window.fbq && !sessionStorage.getItem("ce_px_" + pid)) {
+        let v = 0; try { v = Number(sessionStorage.getItem("ce_total")) || 0; } catch {}
         fbq("track", "Purchase", { value: v, currency: "BRL" }); sessionStorage.setItem("ce_px_" + pid, "1");
       }
     }

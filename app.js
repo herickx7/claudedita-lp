@@ -62,7 +62,9 @@ setMuteIcon();
 
 // ---------- pixel / analytics ----------
 function fbq(...args) { if (window.fbq) window.fbq(...args); }
-if (PIXEL_ID) {
+// O código base do pixel (com PageView) já está no <head> de cada página, como a Meta exige.
+// Aqui só garantimos que ele exista caso o <head> tenha sido alterado.
+if (PIXEL_ID && !window.fbq) {
   !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
   fbq("init", PIXEL_ID); fbq("track", "PageView");
 }
@@ -313,7 +315,8 @@ screens.lead = () => {
         <label>Seu WhatsApp (com DDD)<input class="field" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(84) 9 9999-9999" value="${esc(L.whatsapp ? maskPhone(L.whatsapp) : "")}"></label>
         <div class="wa"><span class="ico">📲</span><div><b>Atenção: é por esse WhatsApp que você recebe o acesso</b>, os bônus e o suporte. Confere se o número e o DDD estão certinhos.</div></div>
         <button class="btn pulse" type="submit">LIBERAR MINHA OFERTA →</button>
-        <div class="lock">🔒 Seus dados ficam só com a gente. Zero spam.</div>
+        <div class="consent">Ao continuar, você concorda com os <a href="/termos" target="_blank">Termos de Uso</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</div>
+        <div class="lock">🔒 Seus dados não são vendidos. Zero spam.</div>
       </form>`)}
   </section>`;
 };
@@ -397,7 +400,7 @@ screens.oferta = () => {
     ${c.bumps.length && c.comboDiscount ? `<div class="combo" id="combo"></div>` : ""}
     ${panel("seu_pedido.txt", `<div class="summary" id="sum"></div>
       <button class="btn green pulse" id="pay" style="margin-top:14px">IR PRO PAGAMENTO →</button>
-      <div class="pay"><span>PIX</span><span>CARTÃO ATÉ 12X</span><span>MERCADO PAGO</span></div>`)}
+      <div class="pay"><span>PIX</span><span>CARTÃO ATÉ 12X</span><span>MERCADO PAGO</span></div><div class="consent" style="margin-top:10px">Ao pagar, você concorda com os <a href="/termos" target="_blank">Termos</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</div>`)}
     <div class="guarantee"><div class="seal">7<br>DIAS</div><div><b>Garantia de 7 dias.</b> Entrou e não curtiu? Pede o reembolso em até 7 dias e devolvemos 100% do valor. Sem pergunta.</div></div>
     <div class="who">📲 Acesso vai para <b>${esc(maskPhone(L.whatsapp || ""))}</b> e <b>${esc(L.email || "")}</b> · <a href="#" id="edit">corrigir</a></div>
     <div class="phase" style="margin-top:20px">PERGUNTAS RÁPIDAS</div>

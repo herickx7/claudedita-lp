@@ -206,3 +206,8 @@ details p { margin: 0; padding: 0 12px 12px; color: var(--muted); font-size: 14p
   .coach img { width: 120px; }
 }
 @media (prefers-reduced-motion: reduce) { *, .bg { animation: none !important; transition: none !important; } }
+
+.foot { text-align: center; padding: 0 16px 120px; font-family: "Mono", monospace; font-size: 11px; color: #8a8ab8; }
+.foot a { color: #9a9ad0; }
+.consent { font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.5; }
+.consent a { color: var(--cyan); }
