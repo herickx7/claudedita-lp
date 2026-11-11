@@ -1,14 +1,15 @@
 // ============================================================
 //  claudedita — funil interativo
-//  Etapas: hero → perfil → trava → conta → demo → lead → oferta
+//  Etapas: hero → trava (1 pergunta) → demo → oferta (com cadastro e pagamento na mesma tela)
 // ============================================================
 
 // (opcional) ID do seu Meta Pixel para rastrear Lead / InitiateCheckout / Purchase
 const PIXEL_ID = "1441261254273109";
 
-const STEPS = ["hero", "perfil", "trava", "conta", "demo", "lead", "oferta"];
+const STEPS = ["hero", "trava", "demo", "oferta"];
+const V = 2; // versão do funil: progresso salvo de versões antigas recomeça do início
 const FALLBACK_CATALOG = {
-  main: { id: "metodo", name: "Método claudedita", desc: "O passo a passo completo pra criar vídeos nesse nível só com IA.", price: 97, anchor: 297 },
+  main: { id: "metodo", name: "Método claudedita", desc: "O passo a passo completo pra criar vídeos nesse nível só com IA.", price: 47, anchor: null },
   bumps: [], comboDiscount: 0,
 };
 
@@ -27,11 +28,11 @@ const params = new URLSearchParams(location.search);
 // ?reset=1 apaga o progresso salvo (útil pra testar). Progresso com mais de 12h também recomeça do início.
 if (params.get("reset")) { try { localStorage.removeItem("ce_state"); } catch {} }
 const saved = store.get();
-if (saved && (!saved.ts || Date.now() - saved.ts > 12 * 3600 * 1000)) { saved.step = 0; saved.bumps = []; }
+if (saved && (saved.v !== V || !saved.ts || Date.now() - saved.ts > 12 * 3600 * 1000)) { saved.step = 0; saved.bumps = []; }
 const state = Object.assign({ step: 0, answers: {}, lead: null, bumps: [], idea: "", utm: {} }, saved || {});
 if (params.get("cupom")) state.coupon = params.get("cupom").trim().toUpperCase().slice(0, 30);
 ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"].forEach((k) => { if (params.get(k)) state.utm[k] = params.get(k); });
-const save = () => { state.ts = Date.now(); store.set(state); };
+const save = () => { state.ts = Date.now(); state.v = V; store.set(state); };
 let catalog = null;
 
 // ---------- som 8-bit (WebAudio, sem arquivos) ----------
@@ -69,6 +70,20 @@ if (PIXEL_ID && !window.fbq) {
   fbq("init", PIXEL_ID); fbq("track", "PageView");
 }
 
+// ---------- rastreio do funil ----------
+// Cada marco é enviado UMA vez por visita: pro Pixel (evento personalizado "Funil_<marco>")
+// e pra planilha (aba Funil), pra dar pra ver em que ponto as pessoas saem.
+const sid = (() => { try { let s = sessionStorage.getItem("ce_sid"); if (!s) { s = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("ce_sid", s); } return s; } catch { return "x"; } })();
+function track(step) {
+  try { const k = "ce_t_" + step; if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch {}
+  fbq("trackCustom", "Funil_" + step);
+  try {
+    const body = JSON.stringify({ step, sid, origem: state.utm.utm_content || state.utm.utm_source || "" });
+    if (!(navigator.sendBeacon && navigator.sendBeacon("/api/evento", new Blob([body], { type: "application/json" }))))
+      fetch("/api/evento", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+  } catch {}
+}
+
 // ---------- HUD / XP ----------
 function hud() {
   const pct = (state.step / (STEPS.length - 1)) * 100;
@@ -101,9 +116,9 @@ screens.hero = () => `
   <section class="screen">
     ${caption("Você viu o anúncio.", "AGORA OLHA ISSO")}
     ${panel("vitrine_3_nichos.mp4", `<div class="player" style="background-image:url(/assets/vitrine-capa.jpg)"><video id="vid" poster="/assets/vitrine-capa.jpg" autoplay muted loop playsinline webkit-playsinline preload="auto" width="540" height="960"><source src="/assets/vitrine-v3.mp4" type="video/mp4"></video><button class="unmute" id="unmute">🔊 TOQUE PRA OUVIR</button></div>`)}
-    <p class="lead"><b>3 nichos diferentes</b>: curiosidade, negócio local e fitness. Todos com o mesmo método e <b>sem editar nada na mão</b>. Em 1 minuto eu te mostro como funciona, e você ainda <b>testa a IA aqui mesmo</b>.</p>
-    <button class="btn pulse" data-next>QUERO VER COMO →</button>
-    <div class="sub">4 fases · 60 segundos · grátis</div>
+    <p class="lead"><b>3 nichos, o mesmo método</b>, sem editar nada na mão. Testa a IA aqui em 30 segundos. O método completo sai por <b>${brl((catalog || FALLBACK_CATALOG).main.price)}</b>, pagamento único.</p>
+    <button class="btn pulse" data-next>TESTAR A IA AGORA →</button>
+    <div class="sub">grátis · sem cadastro · 30 segundos</div>
   </section>`;
 screens.hero.mount = () => {
   const v = $("#vid"), u = $("#unmute");
@@ -116,25 +131,19 @@ screens.hero.mount = () => {
     u.textContent = "▶ VER OS EXEMPLOS"; u.onclick = () => window.open("/assets/vitrine-v3.mp4", "_blank");
   };
   v.addEventListener("error", fail, true); v.querySelector("source").addEventListener("error", fail);
-  u.addEventListener("click", () => { v.muted = false; v.currentTime = 0; v.play(); u.remove(); });
+  u.addEventListener("click", () => { v.muted = false; v.currentTime = 0; v.play(); u.remove(); track("1b_ligou_som"); });
 };
 
-const Q_PERFIL = [
-  ["negocio", "Tenho um negócio e quero vender mais com vídeo", "Perfeito. Vídeo nesse estilo <b>para o dedo do cliente</b> no feed, e você não vai depender de agência."],
-  ["criador", "Quero crescer criando conteúdo", "Boa! Esse formato <b>retém muito</b> e dá pra postar todo dia sem passar a noite editando."],
-  ["servico", "Quero vender edição como serviço", "Visão de dono. Empresa paga caro por vídeo assim, e você vai <b>produzir em minutos</b>."],
-  ["curioso", "Só curiosidade (por enquanto)", "Justo! Fica até a fase 3: lá você <b>testa a IA ao vivo</b>."],
-];
 const Q_TRAVA = [
   ["naosei", "Nunca editei nada", "Melhor ainda: você não tem vício nenhum pra desaprender. <b>O método começa do zero absoluto.</b>"],
   ["demora", "Demoro horas pra editar um vídeo", "É exatamente isso que a IA mata. O trabalho braçal <b>sai das suas mãos</b>."],
   ["retencao", "Meus vídeos não prendem ninguém", "Isso é gancho e ritmo. Tem um módulo só sobre <b>segurar a pessoa até o fim</b>."],
-  ["caro", "Editor bom é caro demais", "Faz a conta comigo na próxima fase. <b>Você vai levar um susto.</b>"],
+  ["caro", "Editor bom é caro demais", "Aqui é <b>pagamento único</b>, e a IA faz o trabalho do editor em todos os seus vídeos."],
 ];
 function quiz(key, phase, l1, l2, pose, intro, list, next) {
   const s = () => `
     <section class="screen">
-      <div class="phase">FASE ${phase} DE 4</div>
+      <div class="phase">PASSO ${phase} DE 3</div>
       ${caption(l1, l2)}
       ${coach(pose, intro)}
       <div class="opts">${list.map(([id, label], i) => `<button class="opt ${state.answers[key] === id ? "sel" : ""}" data-id="${id}"><span class="k">${String.fromCharCode(65 + i)}</span>${label}</button>`).join("")}</div>
@@ -146,50 +155,13 @@ function quiz(key, phase, l1, l2, pose, intro, list, next) {
       $$(".opt").forEach((o) => o.classList.remove("sel")); b.classList.add("sel"); sfx.blip();
       state.answers[key] = b.dataset.id; save();
       const reply = list.find((x) => x[0] === b.dataset.id)[2];
-      sayBubble(reply); xpFloat(b);
-      await sleep(1900); go(next, null); sfx.coin();
+      sayBubble(reply); xpFloat(b); track("2b_respondeu");
+      await sleep(1000); go(next, null); sfx.coin();
     }));
   };
   return s;
 }
-screens.perfil = quiz("perfil", 1, "Primeiro, me diz:", "QUEM É VOCÊ?", "point", "Vou personalizar o resto pra você. <b>Escolhe a que mais combina:</b>", Q_PERFIL, 2);
-screens.trava = quiz("trava", 1, "E hoje, qual é", "SUA MAIOR TRAVA?", "sad", "Sem vergonha, todo mundo começa com uma dessas:", Q_TRAVA, 3);
-
-screens.conta = () => {
-  const price = (catalog || FALLBACK_CATALOG).main.price;
-  return `
-  <section class="screen">
-    <div class="phase">FASE 2 DE 4</div>
-    ${caption("A conta que", "NINGUÉM FAZ")}
-    ${coach("shock", "Mexe nas barras e vê <b>quanto custa</b> ter vídeo bom todo mês do jeito tradicional:")}
-    ${panel("calculadora.exe", `
-      <div class="calc">
-        <label>Vídeos por mês <b id="vv">12</b></label>
-        <input type="range" id="rv" min="4" max="60" step="1" value="12">
-        <label>Quanto um editor cobra por vídeo <b id="vp">R$ 150</b></label>
-        <input type="range" id="rp" min="50" max="500" step="10" value="150">
-      </div>
-      <div style="margin-top:14px;font-size:13px;color:var(--muted)">Com editor você pagaria por ano:</div>
-      <div class="big" id="ano">R$ 21.600</div>
-      <div class="vs">
-        <div class="bad"><small>EDITANDO NA MÃO (est. 3h/vídeo)</small><strong id="horas">36h/mês</strong></div>
-        <div class="good"><small>MÉTODO CLAUDEDITA</small><strong>${brl(price)}</strong><div style="font-size:11px;color:var(--muted)">pagamento único</div></div>
-      </div>`)}
-    <button class="btn" data-next>FAZ SENTIDO. E COMO FUNCIONA? →</button>
-  </section>`;
-};
-screens.conta.mount = () => {
-  const rv = $("#rv"), rp = $("#rp");
-  let shown = 0, raf;
-  const upd = () => {
-    const v = +rv.value, p = +rp.value, target = v * p * 12;
-    $("#vv").textContent = v; $("#vp").textContent = "R$ " + p; $("#horas").textContent = v * 3 + "h/mês";
-    cancelAnimationFrame(raf);
-    const step = () => { shown += (target - shown) * 0.25; if (Math.abs(target - shown) < 1) shown = target; $("#ano").textContent = brl(Math.round(shown)).replace(",00", ""); if (shown !== target) raf = requestAnimationFrame(step); };
-    step(); sfx.click();
-  };
-  rv.addEventListener("input", upd); rp.addEventListener("input", upd); upd();
-};
+screens.trava = quiz("trava", 1, "Uma pergunta só:", "QUAL SUA TRAVA?", "point", "Toca na que mais parece com você:", Q_TRAVA, 2);
 
 // ---- demo ao vivo ----
 const IDEAS = ["Por que o Titanic afundou", "Como conseguir o 1º cliente", "A origem do café", "O segredo das pirâmides"];
@@ -236,7 +208,7 @@ function drawScene(cv, seed, k) {
 
 screens.demo = () => `
   <section class="screen">
-    <div class="phase">FASE 3 DE 4</div>
+    <div class="phase">PASSO 2 DE 3</div>
     ${caption("Agora é sua vez:", "TESTA A IA")}
     ${coach("ok", "Digita <b>qualquer ideia de vídeo</b>. Vou montar o roteiro, as cenas e os ganchos na sua frente.")}
     ${panel("+ nova ideia", `
@@ -244,11 +216,12 @@ screens.demo = () => `
       <div class="chips">${IDEAS.map((i) => `<button class="chip" data-idea="${esc(i)}">${esc(i)}</button>`).join("")}</div>
       <button class="btn" id="gen">⚡ GERAR ROTEIRO</button>
       <div id="out"></div>`, "")}
-    <div id="after"></div>
+    <div id="after"><a href="#" class="skip" id="skip">pular e ver o método completo →</a></div>
   </section>`;
 screens.demo.mount = () => {
+  $("#skip").addEventListener("click", (e) => { e.preventDefault(); track("3c_pulou_demo"); go(3); });
   const input = $("#idea"), out = $("#out"), btn = $("#gen");
-  $$(".chip").forEach((c) => c.addEventListener("click", () => { input.value = c.dataset.idea; sfx.blip(); }));
+  $$(".chip").forEach((c) => c.addEventListener("click", () => { input.value = c.dataset.idea; sfx.blip(); btn.click(); }));
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") btn.click(); else sfx.click(); });
   let running = false;
   btn.addEventListener("click", async () => {
@@ -259,14 +232,14 @@ screens.demo.mount = () => {
     btn.disabled = true; btn.textContent = "GERANDO...";
     const { scenes, hooks } = makeScript(idea);
     out.innerHTML = `<div class="progress"><div id="pg"></div></div><div class="gen mono" id="gen-txt"></div>`;
-    for (let p = 0; p <= 100; p += 10) { $("#pg").style.width = p + "%"; sfx.click(); await sleep(70); }
+    for (let p = 0; p <= 100; p += 20) { $("#pg").style.width = p + "%"; sfx.click(); await sleep(40); }
     const gt = $("#gen-txt");
     for (const [h, t] of scenes) {
       const d = document.createElement("div"); d.className = "line";
       d.innerHTML = `<div class="sc">${h}</div><div class="cursor"></div>`; gt.appendChild(d);
       const body = d.lastElementChild;
-      for (let i = 0; i <= t.length; i += 2) { body.textContent = t.slice(0, i); if (i % 6 === 0) sfx.click(); await sleep(12); }
-      body.textContent = t; body.classList.remove("cursor"); await sleep(120);
+      for (let i = 0; i <= t.length; i += 3) { body.textContent = t.slice(0, i); if (i % 6 === 0) sfx.click(); await sleep(8); }
+      body.textContent = t; body.classList.remove("cursor"); await sleep(50);
     }
     sayBubble("Roteiro pronto. Agora as <b>cenas</b>…"); sfx.coin(); xpFloat(gt);
     const th = document.createElement("div"); th.className = "thumbs";
@@ -276,7 +249,7 @@ screens.demo.mount = () => {
     const cvs = $$("canvas", th);
     for (let f = 0; f <= 20; f++) {
       cvs.forEach((c, i) => { const k = Math.max(0, Math.min(1, (f - i * 3) / 10)); drawScene(c, hash(idea + '#' + i), k); $("#lb" + i).textContent = k >= 1 ? `cena 0${i + 1} · OK` : `cena 0${i + 1} · ${Math.round(k * 100)}%`; });
-      if (f % 3 === 0) sfx.click(); await sleep(60);
+      if (f % 3 === 0) sfx.click(); await sleep(35);
     }
     sfx.level(); xpFloat(th, "+20 XP");
     const hk = document.createElement("div");
@@ -287,13 +260,14 @@ screens.demo.mount = () => {
       b.textContent = "COPIADO ✓"; sfx.coin();
     }));
     sayBubble("Isso foi <b>só a prévia</b> de 2 das 6 etapas. No método você faz o <b>vídeo inteiro</b>: personagem, voz, música, legenda e edição.");
-    $("#after").innerHTML = `<button class="btn green pulse" data-next style="margin-top:16px">QUERO O MÉTODO COMPLETO →</button><div class="sub">quase lá · última fase</div>`;
-    bindNext($("#after"));
+    track("3b_gerou_roteiro");
+    $("#after").innerHTML = `<button class="btn green pulse" data-next style="margin-top:16px">VER O MÉTODO COMPLETO →</button><div class="sub">${brl((catalog || FALLBACK_CATALOG).main.price)} · pagamento único · garantia de 7 dias</div>`;
+    bindNext($("#after")); $("#after").scrollIntoView({ behavior: "smooth", block: "center" });
     btn.disabled = false; btn.textContent = "⚡ GERAR OUTRO"; running = false;
   });
 };
 
-// ---- captura do lead ----
+// ---- cadastro (fica dentro da tela da oferta) ----
 function maskPhone(v) {
   let d = v.replace(/\D/g, ""); if (d.startsWith("55") && d.length > 11) d = d.slice(2); d = d.slice(0, 11);
   if (d.length <= 2) return d ? "(" + d : "";
@@ -301,52 +275,23 @@ function maskPhone(v) {
   if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 3)} ${d.slice(3, 7)}-${d.slice(7)}`;
 }
-screens.lead = () => {
-  const L = state.lead || {};
-  return `
-  <section class="screen">
-    <div class="phase">FASE 4 DE 4</div>
-    ${caption("Última fase:", "LIBERE SUA OFERTA")}
-    ${coach("thumb", "Montei uma oferta pensando no que você me respondeu. <b>Pra onde eu mando seu acesso?</b>")}
-    ${panel("cadastro.exe", `
-      <form class="form" id="lf" novalidate>
-        <label>Seu nome<input class="field" name="name" autocomplete="name" placeholder="Como posso te chamar?" value="${esc(L.name || "")}"></label>
-        <label>Seu melhor e-mail<input class="field" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="${esc(L.email || "")}"></label>
-        <label>Seu WhatsApp (com DDD)<input class="field" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(84) 9 9999-9999" value="${esc(L.whatsapp ? maskPhone(L.whatsapp) : "")}"></label>
-        <div class="wa"><span class="ico">📲</span><div><b>Atenção: é por esse WhatsApp que você recebe o acesso</b>, os bônus e o suporte. Confere se o número e o DDD estão certinhos.</div></div>
-        <button class="btn pulse" type="submit">LIBERAR MINHA OFERTA →</button>
-        <div class="consent">Ao continuar, você concorda com os <a href="/termos" target="_blank">Termos de Uso</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</div>
-        <div class="lock">🔒 Seus dados não são vendidos. Zero spam.</div>
-      </form>`)}
-  </section>`;
-};
-screens.lead.mount = () => {
-  const f = $("#lf"), wa = f.whatsapp;
-  wa.addEventListener("input", () => { wa.value = maskPhone(wa.value); });
-  $$(".field", f).forEach((i) => i.addEventListener("input", () => i.classList.remove("bad")));
-  f.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = f.name.value.trim().replace(/\s+/g, " "), email = f.email.value.trim().toLowerCase(), phone = wa.value.replace(/\D/g, "");
-    const bad = [];
-    if (name.split(" ")[0].length < 2) bad.push(f.name);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) bad.push(f.email);
-    if (!/^\d{10,11}$/.test(phone)) bad.push(wa);
-    $$(".field", f).forEach((i) => i.classList.remove("bad"));
-    if (bad.length) {
-      bad.forEach((i) => i.classList.add("bad")); bad[0].focus(); sfx.error();
-      toast(bad[0] === wa ? "Confere o WhatsApp com DDD 😉" : bad[0] === f.email ? "Esse e-mail parece errado" : "Coloca seu nome pra eu te chamar");
-      return;
-    }
-    const btn = $("button[type=submit]", f); btn.disabled = true; btn.textContent = "LIBERANDO...";
-    state.lead = { name, email, whatsapp: phone }; save();
-    try {
-      const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
-      await fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...state.lead, answers: { ...state.answers, ideia: state.idea }, utm: state.utm }), signal: ctl.signal });
-    } catch {}
-    fbq("track", "Lead");
-    sfx.level(); go(6, btn);
-  });
-};
+function readForm() {
+  const f = $("#lf"); if (!f) return null;
+  const name = f.name.value.trim().replace(/\s+/g, " "), email = f.email.value.trim().toLowerCase(), phone = f.whatsapp.value.replace(/\D/g, "");
+  const bad = [];
+  if (name.split(" ")[0].length < 2) bad.push(f.name);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) bad.push(f.email);
+  if (!/^\d{10,11}$/.test(phone)) bad.push(f.whatsapp);
+  return { f, lead: { name, email, whatsapp: phone }, bad };
+}
+// Envia o lead assim que os 3 campos ficam válidos (mesmo que a pessoa não clique em pagar),
+// pra dar pra recuperar pelo WhatsApp quem parou no último passo.
+function sendLead(lead) {
+  const key = JSON.stringify(lead); if (state.leadSent === key) return;
+  state.lead = lead; state.leadSent = key; save();
+  fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true, body: JSON.stringify({ ...lead, answers: { ...state.answers, ideia: state.idea }, utm: state.utm }) }).catch(() => {});
+  fbq("track", "Lead"); track("4d_preencheu_dados");
+}
 
 // ---- oferta / montagem do pedido ----
 const RECO = { naosei: "templates", demora: "prompts", retencao: "sfx", caro: "prompts" };
@@ -372,41 +317,49 @@ function order() {
 }
 screens.oferta = () => {
   const c = catalog || FALLBACK_CATALOG; const L = state.lead || {};
-  const first = esc((L.name || "").split(" ")[0] || "Ei");
   const reco = RECO[state.answers.trava];
   const recoB = c.bumps.find((b) => b.id === reco);
-  const msg = recoB ? `Como você disse que <b>${esc(DOR[state.answers.trava] || "")}</b>, eu recomendo adicionar o <b>${esc(recoB.name)}</b>. Monta do seu jeito:` : "Monta seu kit do seu jeito. Marca o que quiser levar junto:";
+  const msg = recoB ? `Você disse que <b>${esc(DOR[state.answers.trava] || "")}</b>. O método resolve isso, e o <b>${esc(recoB.name)}</b> acelera. Os extras são opcionais.` : "Esse é o método que fez os vídeos que você viu. <b>Os extras são opcionais.</b>";
+  const price = (b, plus) => `<div class="price">${b.anchor ? `<s>${brl(b.anchor)}</s>` : ""}${plus ? "só " : ""}<strong>${plus ? "+" : ""}${brl(b.price)}</strong>${plus ? "" : " · pagamento único"}</div>`;
   return `
   <section class="screen">
-    <div class="phase">🏆 OFERTA LIBERADA</div>
-    ${caption(`${first}, monta`, "SEU KIT")}
+    <div class="phase">PASSO 3 DE 3</div>
+    ${caption("O método completo", `POR ${brl(c.main.price).replace(",00", "")}`)}
     ${coach("down", msg)}
-    ${panel("o_que_tem_no_metodo.txt", `<div class="mods">${MODS.map(([i, t, s]) => `<div class="mod"><span class="ico">${i}</span><div><b>${t}</b><small>${s}</small></div></div>`).join("")}</div>`)}
     <div class="item main">
+      ${c.main.tag ? `<span class="tag" style="background:var(--green);color:var(--dark)">${esc(c.main.tag)}</span>` : ""}
       <div class="box">✓</div>
       <div><h3>${esc(c.main.name)}</h3><p>${esc(c.main.desc)}</p>
-      <div class="price"><s>${brl(c.main.anchor)}</s><strong>${brl(c.main.price)}</strong></div>
+      ${price(c.main, false)}
       <div class="add">INCLUÍDO NO SEU PEDIDO</div></div>
     </div>
-    ${c.bumps.length ? `<div class="phase" style="margin-top:18px">➕ TURBINE SEU PEDIDO (OPCIONAL)</div>` : ""}
+    <details class="whats"><summary>Ver o que vem no método (6 módulos)</summary><div class="mods" style="padding:0 12px 12px">${MODS.map(([i, t, s]) => `<div class="mod on"><span class="ico">${i}</span><div><b>${t}</b><small>${s}</small></div></div>`).join("")}</div></details>
+    ${c.bumps.length ? `<div class="phase" style="margin-top:18px">➕ EXTRAS OPCIONAIS</div>` : ""}
     ${c.bumps.map((b) => `
       <div class="item ${state.bumps.includes(b.id) ? "on" : ""}" data-bump="${b.id}" role="checkbox" aria-checked="${state.bumps.includes(b.id)}" tabindex="0">
         ${b.id === reco ? `<span class="tag" style="background:var(--purple)">RECOMENDADO PRA VOCÊ</span>` : b.tag ? `<span class="tag">${esc(b.tag)}</span>` : ""}
         <div class="box">${state.bumps.includes(b.id) ? "✓" : ""}</div>
         <div><h3>${esc(b.name)}</h3><p>${esc(b.desc)}</p>
-        <div class="price"><s>${brl(b.anchor)}</s>só <strong>+${brl(b.price)}</strong></div>
+        ${price(b, true)}
         <div class="add">${state.bumps.includes(b.id) ? "ADICIONADO ✓" : "TOQUE PARA ADICIONAR"}</div></div>
       </div>`).join("")}
     ${c.bumps.length && c.comboDiscount ? `<div class="combo" id="combo"></div>` : ""}
     ${panel("seu_pedido.txt", `<div class="summary" id="sum"></div>
-      <button class="btn green pulse" id="pay" style="margin-top:14px">IR PRO PAGAMENTO →</button>
-      <div class="pay"><span>PIX</span><span>CARTÃO ATÉ 12X</span><span>MERCADO PAGO</span></div><div class="consent" style="margin-top:10px">Ao pagar, você concorda com os <a href="/termos" target="_blank">Termos</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</div>`)}
+      <form class="form" id="lf" novalidate style="margin-top:14px">
+        <div class="phase" style="margin:0">PRA ONDE MANDO SEU ACESSO?</div>
+        <label>Seu nome<input class="field" name="name" autocomplete="name" placeholder="Como posso te chamar?" value="${esc(L.name || "")}"></label>
+        <label>Seu melhor e-mail (o acesso chega aqui)<input class="field" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="${esc(L.email || "")}"></label>
+        <label>Seu WhatsApp com DDD (pro suporte)<input class="field" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(84) 9 9999-9999" value="${esc(L.whatsapp ? maskPhone(L.whatsapp) : "")}"></label>
+        <button class="btn green pulse" id="pay" type="submit">PAGAR COM PIX OU CARTÃO →</button>
+      </form>
+      <div class="pay"><span>PIX NA HORA</span><span>CARTÃO ATÉ 12X</span><span>MERCADO PAGO</span></div>
+      <div class="lock" style="margin-top:8px">🔒 Pagamento seguro pelo Mercado Pago. Acesso liberado na hora.</div>
+      <div class="consent" style="margin-top:8px">Ao pagar, você concorda com os <a href="/termos" target="_blank">Termos</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</div>`)}
     <div class="guarantee"><div class="seal">7<br>DIAS</div><div><b>Garantia de 7 dias.</b> Entrou e não curtiu? Pede o reembolso em até 7 dias e devolvemos 100% do valor. Sem pergunta.</div></div>
-    <div class="who">📲 Acesso vai para <b>${esc(maskPhone(L.whatsapp || ""))}</b> e <b>${esc(L.email || "")}</b> · <a href="#" id="edit">corrigir</a></div>
     <div class="phase" style="margin-top:20px">PERGUNTAS RÁPIDAS</div>
     <details><summary>Preciso saber editar?</summary><p>Não. O método começa do zero e a IA faz a parte pesada. Você aprende a dar as instruções certas e montar o vídeo.</p></details>
-    <details><summary>Dá pra fazer só pelo celular?</summary><p>Sim. Dá pra seguir tudo no celular; no computador fica mais confortável, mas não é obrigatório.</p></details>
-    <details><summary>Como eu recebo o acesso?</summary><p>Assim que o pagamento é aprovado, você recebe o acesso no WhatsApp e no e-mail que cadastrou. No Pix a aprovação costuma ser imediata.</p></details>
+    <details><summary>O que eu preciso ter?</summary><p>Uma conta no Claude com a execução de código ativada (a skill do método roda dentro dele) e um celular ou computador. A assinatura do Claude é contratada à parte, direto com a Anthropic.</p></details>
+    <details><summary>Como eu recebo o acesso?</summary><p>Assim que o pagamento é aprovado, os links aparecem na tela e chegam no seu e-mail. No Pix a aprovação costuma levar segundos.</p></details>
     <details><summary>E se eu não gostar?</summary><p>Você tem 7 dias de garantia. É só pedir e devolvemos todo o valor.</p></details>
   </section>`;
 };
@@ -430,15 +383,14 @@ function updateOrder(flash) {
   if (flash) { sum.classList.remove("flash"); void sum.offsetWidth; sum.classList.add("flash"); }
 }
 screens.oferta.mount = () => {
-  // revela os módulos um a um
-  $$(".mod").forEach((m, i) => setTimeout(() => { m.classList.add("on"); tone(600 + i * 90, 0.05); }, 250 + i * 220));
+  $(".whats").addEventListener("toggle", () => track("4b_abriu_modulos"));
   $$("[data-bump]").forEach((el) => {
     const toggle = () => {
       const id = el.dataset.bump, on = !state.bumps.includes(id);
       state.bumps = on ? [...state.bumps, id] : state.bumps.filter((x) => x !== id); save();
       el.classList.toggle("on", on); el.setAttribute("aria-checked", on);
       $(".box", el).textContent = on ? "✓" : ""; $(".add", el).textContent = on ? "ADICIONADO ✓" : "TOQUE PARA ADICIONAR";
-      if (on) { sfx.coin(); xpFloat(el, "+" + brl((catalog || FALLBACK_CATALOG).bumps.find((b) => b.id === id).price)); } else sfx.off();
+      if (on) { sfx.coin(); track("4c_adicionou_extra"); xpFloat(el, "+" + brl((catalog || FALLBACK_CATALOG).bumps.find((b) => b.id === id).price)); } else sfx.off();
       const was = updateOrder.all; updateOrder(true);
       if (order().all && !was) sfx.level();
       updateOrder.all = order().all;
@@ -447,59 +399,73 @@ screens.oferta.mount = () => {
     el.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } });
   });
   updateOrder.all = order().all; updateOrder();
-  $("#pay").addEventListener("click", checkout);
-  $("#edit").addEventListener("click", (e) => { e.preventDefault(); go(5); });
+  // formulário: máscara, envio do lead quando fica válido e pagamento no submit
+  const f = $("#lf"), wa = f.whatsapp; let tmr;
+  wa.addEventListener("input", () => { wa.value = maskPhone(wa.value); });
+  $$(".field", f).forEach((i) => {
+    i.addEventListener("focus", () => track("4c_comecou_dados"), { once: true });
+    i.addEventListener("input", () => { i.classList.remove("bad"); clearTimeout(tmr); tmr = setTimeout(() => { const r = readForm(); if (r && !r.bad.length) sendLead(r.lead); }, 700); });
+  });
+  f.addEventListener("submit", (e) => { e.preventDefault(); checkout(); });
   // barra fixa com total
   const st = document.createElement("div"); st.className = "sticky"; st.id = "sticky";
   st.innerHTML = `<div class="in"><div class="t"><small>TOTAL</small><strong id="stotal">${brl(order().total)}</strong></div><button class="btn green" id="pay2">PAGAR AGORA →</button></div>`;
   document.body.appendChild(st);
   $("#pay2").addEventListener("click", checkout);
-  const payBtn = $("#pay");
   const io = new IntersectionObserver(([e]) => st.classList.toggle("show", !e.isIntersecting && window.scrollY > 300));
-  io.observe(payBtn);
+  io.observe(f);
   window.addEventListener("scroll", () => { if (window.scrollY < 300) st.classList.remove("show"); }, { passive: true });
-  if (params.get("pagamento") === "falhou") { toast("O pagamento não foi concluído. Tenta de novo — no Pix é na hora."); history.replaceState(null, "", location.pathname); }
+  if (params.get("pagamento") === "falhou") { track("5c_voltou_sem_pagar"); toast("O pagamento não foi concluído. Tenta de novo — no Pix é na hora."); history.replaceState(null, "", location.pathname); }
 };
 
+function badForm(r) {
+  $$(".field", r.f).forEach((i) => i.classList.remove("bad"));
+  r.bad.forEach((i) => i.classList.add("bad")); sfx.error(); track("5a_erro_nos_dados");
+  r.f.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => r.bad[0].focus({ preventScroll: true }), 350);
+  toast(r.bad[0] === r.f.whatsapp ? "Confere o WhatsApp com DDD 😉" : r.bad[0] === r.f.email ? "Coloca um e-mail válido: o acesso chega nele" : "Coloca seu nome pra eu te chamar");
+}
 async function checkout() {
-  if (!state.lead) return go(5);
+  const r = readForm(); if (!r) return go(3);
+  track("5_clicou_pagar");
+  if (r.bad.length) return badForm(r);
+  sendLead(r.lead);
   const btns = [$("#pay"), $("#pay2")].filter(Boolean);
-  btns.forEach((b) => { b.disabled = true; b.dataset.t = b.textContent; b.textContent = "CRIANDO PAGAMENTO..."; });
+  btns.forEach((b) => { b.disabled = true; b.dataset.t = b.textContent; b.textContent = "ABRINDO PAGAMENTO..."; });
   sfx.blip();
   const o = order();
   fbq("track", "InitiateCheckout", { value: o.total, currency: "BRL" });
   try { sessionStorage.setItem("ce_total", String(o.total)); } catch {}
   try {
-    const r = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...state.lead, items: state.bumps, coupon: state.couponPct ? state.coupon : "" }) });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.url) {
-      if (data.fields) { toast("Confere seus dados antes de pagar."); return go(5); }
+    const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...r.lead, items: state.bumps, coupon: state.couponPct ? state.coupon : "" }) });
+    const data = await res.json().catch(() => ({}));
+    btns.forEach((b) => { b.disabled = false; b.textContent = b.dataset.t; });
+    if (!res.ok || !data.url) {
+      if (data.fields) { const map = { name: r.f.name, email: r.f.email, whatsapp: r.f.whatsapp }; r.bad = data.fields.map((k) => map[k]).filter(Boolean); if (r.bad.length) return badForm(r); }
       throw new Error(data.error || "erro");
     }
-    sfx.level();
+    track("5b_foi_pro_mercado_pago"); sfx.level();
     location.href = data.url;
   } catch (e) {
-    sfx.error(); toast("Não consegui abrir o pagamento agora. Tenta de novo em alguns segundos.");
+    track("5d_erro_ao_abrir_pagamento"); sfx.error(); toast("Não consegui abrir o pagamento agora. Tenta de novo em alguns segundos.");
     btns.forEach((b) => { b.disabled = false; b.textContent = b.dataset.t; });
   }
 }
 
 // ---------- render ----------
 function bindNext(root = document) { $$("[data-next]", root).forEach((b) => b.addEventListener("click", () => go(state.step + 1, b))); }
+const STEP_TRACK = ["1_entrou", "2_viu_pergunta", "3_viu_demo", "4_viu_oferta"];
 function render() {
   $("#sticky")?.remove();
-  const name = STEPS[state.step];
-  if ((name === "oferta") && !state.lead) { state.step = 5; return render(); }
-  const s = screens[name];
+  state.step = Math.max(0, Math.min(STEPS.length - 1, state.step || 0));
+  const s = screens[STEPS[state.step]];
   $("#stage").innerHTML = s();
   bindNext($("#stage"));
   s.mount && s.mount();
-  hud();
+  hud(); track(STEP_TRACK[state.step]);
 }
 
 (async function init() {
-  if (params.get("pagamento") === "falhou" && state.lead) state.step = 6;
-  else if (state.step > 0 && state.step < 6 && !params.get("continuar")) state.step = state.step; // retoma onde parou
+  if (params.get("pagamento") === "falhou") state.step = 3; // voltou do Mercado Pago sem pagar: cai direto na oferta
   try { const r = await fetch("/api/catalog"); if (r.ok) catalog = await r.json(); } catch {}
   state.couponPct = 0;
   if (state.coupon) {

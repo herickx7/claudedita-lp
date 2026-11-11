@@ -2,13 +2,13 @@
 
 Página interativa que aquece o lead em 4 fases e manda pro pagamento:
 
-1. **Abertura**: vitrine com 3 vídeos de nichos diferentes (`assets/vitrine.mp4`), diferente do anúncio que leva a pessoa até a página
-2. **Fase 1**: quiz (quem é você + maior trava), com resposta personalizada pra cada opção
-3. **Fase 2**: calculadora do quanto custa ter vídeo bom todo mês
-4. **Fase 3**: demo ao vivo: a pessoa digita uma ideia e recebe roteiro, cenas e 3 ganchos pra copiar
-5. **Fase 4**: captura de nome, e-mail e WhatsApp (com aviso de que o acesso chega pelo WhatsApp)
-6. **Oferta**: produto principal + order bumps que a pessoa marca, desconto no combo completo e total ao vivo
-7. **Pagamento**: o servidor recalcula o total e cria UMA cobrança no Mercado Pago com o valor final (Pix ou cartão)
+1. **Abertura**: vitrine com 3 vídeos de nichos diferentes e o preço já visível
+2. **Pergunta**: 1 toque (maior trava), usada pra recomendar um extra
+3. **Demo**: a pessoa toca numa ideia e recebe roteiro, cenas e 3 ganchos (dá pra pular)
+4. **Oferta + cadastro + pagamento na mesma tela**: método, extras opcionais, nome/e-mail/WhatsApp e botão de pagar
+5. **Pagamento**: o servidor recalcula o total e cria UMA cobrança no Mercado Pago (Pix ou cartão)
+
+Cada marco do caminho é registrado no Pixel (eventos `Funil_...`) e na aba **Funil** da planilha.
 
 ## Subir no ar
 
@@ -48,6 +48,7 @@ index.html  styles.css  app.js     → o funil
 obrigado.html                      → retorno do Mercado Pago (aprovado/pendente)
 api/catalog.js                     → entrega o catálogo pro site
 api/lead.js                        → recebe o lead
+api/evento.js                      → registra os marcos do funil (onde cada visitante chegou)
 api/checkout.js                    → cria a cobrança no Mercado Pago (valor final)
 api/webhook.js                     → confirma o pagamento e dispara a entrega
 api/acesso.js                      → libera os links na página de obrigado (só se o pagamento estiver aprovado)

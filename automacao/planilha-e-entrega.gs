@@ -11,11 +11,17 @@ const SUPORTE_WHATSAPP = "";                   // ex: 5584999999999 (opcional, v
 const ASSUNTO = "🎮 Seu acesso chegou — claudedita";
 // ========================================================
 
+// Marcos do funil, na ordem em que acontecem (cada visitante conta 1 vez por marco)
+const FUNIL = ["1_entrou", "1b_ligou_som", "2_viu_pergunta", "2b_respondeu", "3_viu_demo", "3b_gerou_roteiro", "3c_pulou_demo",
+  "4_viu_oferta", "4b_abriu_modulos", "4c_adicionou_extra", "4c_comecou_dados", "4d_preencheu_dados",
+  "5_clicou_pagar", "5a_erro_nos_dados", "5b_foi_pro_mercado_pago", "5c_voltou_sem_pagar", "5d_erro_ao_abrir_pagamento"];
+
 const ABAS = {
   Leads:    ["Data", "Nome", "E-mail", "WhatsApp", "Perfil", "Trava", "Ideia testada", "Origem (UTM)", "Status", "Última atualização", "Chamar no WhatsApp"],
   Pedidos:  ["Data", "Pedido", "Nome", "E-mail", "WhatsApp", "Itens", "Total (R$)", "Status", "Método", "ID pagamento", "Entregue em", "Atualizado"],
   Clientes: ["Data da compra", "Nome", "E-mail", "WhatsApp", "Itens", "Valor (R$)", "Pedido", "Mensagem de boas-vindas (1 clique)"],
   Log:      ["Data", "Evento", "Dados"],
+  Funil:    ["Dia · Anúncio"].concat(FUNIL),
 };
 const STATUS_PT = { approved: "PAGO", pending: "AGUARDANDO", in_process: "EM ANÁLISE", rejected: "RECUSADO", cancelled: "CANCELADO", refunded: "REEMBOLSADO", charged_back: "ESTORNADO" };
 
@@ -25,6 +31,7 @@ function doPost(e) {
     const d = JSON.parse(e.postData.contents || "{}");
     if (d.token !== TOKEN) return out({ ok: false, erro: "token" });
     delete d.token;
+    if (d.event === "funil") { onFunil_(d); return out({ ok: true }); } // não vai pro Log, pra não poluir
     log_(d.event, d);
     if (d.event === "lead") onLead_(d);
     else if (d.event === "checkout_iniciado") onCheckout_(d);
@@ -38,6 +45,22 @@ function doPost(e) {
 function doGet() { return out({ ok: true, msg: "planilha claudedita online" }); }
 
 // ---------------- eventos ----------------
+// Soma +1 no marco, numa linha por dia e por anúncio de origem. A queda de uma coluna pra outra mostra onde as pessoas saem.
+function onFunil_(d) {
+  const col = FUNIL.indexOf(d.step); if (col < 0) return;
+  const sh = aba_("Funil");
+  const dia = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy");
+  const chave = dia + " · " + (d.origem || "sem origem");
+  let row = 0;
+  if (sh.getLastRow() > 1) {
+    const vals = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues();
+    for (let i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]) === chave) { row = i + 2; break; }
+  }
+  if (!row) { sh.appendRow([chave].concat(FUNIL.map(() => 0))); row = sh.getLastRow(); }
+  const cell = sh.getRange(row, col + 2);
+  cell.setValue((Number(cell.getValue()) || 0) + 1);
+}
+
 function onLead_(d) {
   const a = d.answers || {};
   const utm = d.utm ? [d.utm.utm_source, d.utm.utm_campaign, d.utm.utm_content].filter(String).join(" / ") : "";
