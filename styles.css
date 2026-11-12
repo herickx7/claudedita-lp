@@ -215,3 +215,20 @@ details p { margin: 0; padding: 0 12px 12px; color: var(--muted); font-size: 14p
 .skip { display: block; text-align: center; margin-top: 14px; font-family: "Mono", monospace; font-size: 12px; color: var(--muted); }
 details.whats summary { font-size: 13.5px; color: var(--cyan); }
 .item.main .tag { right: auto; left: 10px; }
+
+.btn.ghost { background: transparent; color: var(--white); border: 2px solid #5a5a8c; box-shadow: none; font-size: 15px; padding: 12px; margin-top: 2px; }
+.pixbox { position: fixed; inset: 0; z-index: 80; background: rgba(8,6,20,.86); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 14px; overflow-y: auto; }
+.pixcard { position: relative; width: 100%; max-width: 440px; background: var(--panel); border: 3px solid var(--dark); box-shadow: 8px 8px 0 var(--dark); padding: 20px 18px; animation: pop .3s; }
+.pixclose { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--muted); font-size: 20px; cursor: pointer; width: 44px; height: 44px; }
+.pixtotal { font-size: 38px; font-weight: 700; color: var(--yel); text-shadow: 3px 3px 0 var(--dark); margin-bottom: 8px; }
+.pixsteps { margin: 0 0 14px 18px; padding: 0; font-size: 14.5px; line-height: 1.6; color: var(--white); }
+.pixsteps b { color: var(--yel); }
+.pixcode { width: 100%; margin-top: 12px; background: var(--dark); color: var(--muted); border: 2px solid #5a5a8c; font: 12px "Mono", monospace; padding: 10px; resize: none; word-break: break-all; }
+.pixqr { text-align: center; margin-top: 12px; }
+.pixqr img { background: #fff; padding: 8px; border: 3px solid var(--dark); width: 220px; height: 220px; image-rendering: pixelated; }
+.pixqr small { display: block; color: var(--muted); font-size: 12px; margin-top: 6px; }
+.pixwait { display: flex; align-items: center; gap: 8px; justify-content: center; margin: 14px 0 6px; font-size: 14px; color: var(--white); flex-wrap: wrap; text-align: center; }
+.pixwait .dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: blink 1s steps(1) infinite; }
+#pixstatus { color: var(--muted); font-size: 12.5px; width: 100%; }
+.pixpaid { display: block; margin: 4px auto 10px; background: none; border: 0; color: var(--cyan); font: 700 14px "Pop"; text-decoration: underline; cursor: pointer; min-height: 44px; }
+@media (min-width: 700px) { .pixqr img { width: 240px; height: 240px; } }

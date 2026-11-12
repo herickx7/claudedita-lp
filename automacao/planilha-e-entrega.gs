@@ -14,7 +14,8 @@ const ASSUNTO = "🎮 Seu acesso chegou — claudedita";
 // Marcos do funil, na ordem em que acontecem (cada visitante conta 1 vez por marco)
 const FUNIL = ["1_entrou", "1b_ligou_som", "2_viu_pergunta", "2b_respondeu", "3_viu_demo", "3b_gerou_roteiro", "3c_pulou_demo",
   "4_viu_oferta", "4b_abriu_modulos", "4c_adicionou_extra", "4c_comecou_dados", "4d_preencheu_dados",
-  "5_clicou_pagar", "5a_erro_nos_dados", "5b_foi_pro_mercado_pago", "5c_voltou_sem_pagar", "5d_erro_ao_abrir_pagamento"];
+  "5_clicou_pagar", "5a_erro_nos_dados", "5b_foi_pro_mercado_pago", "5c_voltou_sem_pagar", "5d_erro_ao_abrir_pagamento",
+  "5b_gerou_pix", "5d_erro_ao_gerar_pix", "5e_copiou_pix", "5f_pix_pago", "5g_fechou_pix"]; // novas colunas entram no fim: as antigas não mudam de lugar
 
 const ABAS = {
   Leads:    ["Data", "Nome", "E-mail", "WhatsApp", "Perfil", "Trava", "Ideia testada", "Origem (UTM)", "Status", "Última atualização", "Chamar no WhatsApp"],
@@ -49,6 +50,8 @@ function doGet() { return out({ ok: true, msg: "planilha claudedita online" }); 
 function onFunil_(d) {
   const col = FUNIL.indexOf(d.step); if (col < 0) return;
   const sh = aba_("Funil");
+  const cab = ABAS.Funil; // garante que colunas novas ganhem título numa planilha antiga
+  if (sh.getLastColumn() < cab.length) sh.getRange(1, 1, 1, cab.length).setValues([cab]).setFontWeight("bold").setBackground("#221e52").setFontColor("#ffc41a");
   const dia = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy");
   const chave = dia + " · " + (d.origem || "sem origem");
   let row = 0;
@@ -160,4 +163,17 @@ function configurarPlanilha() {
   const del = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Página1") || SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
   if (del && SpreadsheetApp.getActiveSpreadsheet().getSheets().length > 1) SpreadsheetApp.getActiveSpreadsheet().deleteSheet(del);
   MailApp.getRemainingDailyQuota(); // força a permissão de e-mail
+}
+
+// TESTE: escolha esta função no editor e clique em ▶ Executar.
+// Ela simula um visitante, um lead e um pedido (sem pagamento e sem enviar e-mail) e escreve nas abas.
+function testarPlanilha() {
+  const post = (d) => doPost({ postData: { contents: JSON.stringify(Object.assign({ token: TOKEN }, d)) } }).getContent();
+  const r = [
+    post({ event: "funil", step: "1_entrou", origem: "TESTE" }),
+    post({ event: "lead", name: "Teste Planilha", email: "teste@exemplo.com", whatsapp: "+5584999990000", answers: { trava: "naosei", ideia: "teste" }, utm: { utm_source: "teste" } }),
+    post({ event: "checkout_iniciado", ref: "CE-TESTE", name: "Teste Planilha", email: "teste@exemplo.com", whatsapp: "+5584999990000", items: ["metodo"], total: 47 }),
+  ];
+  Logger.log(r.join("\n"));
+  SpreadsheetApp.getActiveSpreadsheet().toast("Teste concluído: veja as abas Funil, Leads e Pedidos.", "claudedita");
 }

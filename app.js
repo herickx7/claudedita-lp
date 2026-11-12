@@ -350,10 +350,10 @@ screens.oferta = () => {
         <label>Seu nome<input class="field" name="name" autocomplete="name" placeholder="Como posso te chamar?" value="${esc(L.name || "")}"></label>
         <label>Seu melhor e-mail (o acesso chega aqui)<input class="field" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="${esc(L.email || "")}"></label>
         <label>Seu WhatsApp com DDD (pro suporte)<input class="field" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(84) 9 9999-9999" value="${esc(L.whatsapp ? maskPhone(L.whatsapp) : "")}"></label>
-        <button class="btn green pulse" id="pay" type="submit">PAGAR COM PIX OU CARTÃO →</button>
+        <button class="btn green pulse" id="pay" type="submit">PAGAR COM PIX →</button>
+        <button class="btn ghost" id="paycard" type="button">Prefiro cartão (até 12x)</button>
       </form>
-      <div class="pay"><span>PIX NA HORA</span><span>CARTÃO ATÉ 12X</span><span>MERCADO PAGO</span></div>
-      <div class="lock" style="margin-top:8px">🔒 Pagamento seguro pelo Mercado Pago. Acesso liberado na hora.</div>
+      <div class="lock" style="margin-top:8px">🔒 O Pix aparece aqui mesmo, sem sair da página. Pagamento processado pelo Mercado Pago, acesso liberado na hora.</div>
       <div class="consent" style="margin-top:8px">Ao pagar, você concorda com os <a href="/termos" target="_blank">Termos</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</div>`)}
     <div class="guarantee"><div class="seal">7<br>DIAS</div><div><b>Garantia de 7 dias.</b> Entrou e não curtiu? Pede o reembolso em até 7 dias e devolvemos 100% do valor. Sem pergunta.</div></div>
     <div class="phase" style="margin-top:20px">PERGUNTAS RÁPIDAS</div>
@@ -406,12 +406,13 @@ screens.oferta.mount = () => {
     i.addEventListener("focus", () => track("4c_comecou_dados"), { once: true });
     i.addEventListener("input", () => { i.classList.remove("bad"); clearTimeout(tmr); tmr = setTimeout(() => { const r = readForm(); if (r && !r.bad.length) sendLead(r.lead); }, 700); });
   });
-  f.addEventListener("submit", (e) => { e.preventDefault(); checkout(); });
+  f.addEventListener("submit", (e) => { e.preventDefault(); checkout("pix"); });
+  $("#paycard").addEventListener("click", () => checkout("card"));
   // barra fixa com total
   const st = document.createElement("div"); st.className = "sticky"; st.id = "sticky";
-  st.innerHTML = `<div class="in"><div class="t"><small>TOTAL</small><strong id="stotal">${brl(order().total)}</strong></div><button class="btn green" id="pay2">PAGAR AGORA →</button></div>`;
+  st.innerHTML = `<div class="in"><div class="t"><small>TOTAL</small><strong id="stotal">${brl(order().total)}</strong></div><button class="btn green" id="pay2">PAGAR COM PIX →</button></div>`;
   document.body.appendChild(st);
-  $("#pay2").addEventListener("click", checkout);
+  $("#pay2").addEventListener("click", () => checkout("pix"));
   const io = new IntersectionObserver(([e]) => st.classList.toggle("show", !e.isIntersecting && window.scrollY > 300));
   io.observe(f);
   window.addEventListener("scroll", () => { if (window.scrollY < 300) st.classList.remove("show"); }, { passive: true });
@@ -424,22 +425,33 @@ function badForm(r) {
   r.f.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => r.bad[0].focus({ preventScroll: true }), 350);
   toast(r.bad[0] === r.f.whatsapp ? "Confere o WhatsApp com DDD 😉" : r.bad[0] === r.f.email ? "Coloca um e-mail válido: o acesso chega nele" : "Coloca seu nome pra eu te chamar");
 }
-async function checkout() {
+async function checkout(method = "pix") {
   const r = readForm(); if (!r) return go(3);
   track("5_clicou_pagar");
   if (r.bad.length) return badForm(r);
   sendLead(r.lead);
-  const btns = [$("#pay"), $("#pay2")].filter(Boolean);
-  btns.forEach((b) => { b.disabled = true; b.dataset.t = b.textContent; b.textContent = "ABRINDO PAGAMENTO..."; });
+  const btns = [$("#pay"), $("#pay2"), $("#paycard")].filter(Boolean);
+  btns.forEach((b) => { b.disabled = true; b.dataset.t = b.textContent; });
+  const clicked = method === "card" ? $("#paycard") : $("#pay");
+  if (clicked) clicked.textContent = method === "card" ? "ABRINDO MERCADO PAGO..." : "GERANDO SEU PIX...";
+  const restore = () => btns.forEach((b) => { b.disabled = false; b.textContent = b.dataset.t; });
   sfx.blip();
   const o = order();
   fbq("track", "InitiateCheckout", { value: o.total, currency: "BRL" });
   try { sessionStorage.setItem("ce_total", String(o.total)); } catch {}
+  const body = JSON.stringify({ ...r.lead, items: state.bumps, coupon: state.couponPct ? state.coupon : "" });
   try {
-    const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...r.lead, items: state.bumps, coupon: state.couponPct ? state.coupon : "" }) });
+    if (method === "pix") {
+      const res = await fetch("/api/pix", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.qr) { restore(); track("5b_gerou_pix"); sfx.level(); return showPix(data); }
+      if (data.fields) { restore(); const map = { name: r.f.name, email: r.f.email, whatsapp: r.f.whatsapp }; r.bad = data.fields.map((k) => map[k]).filter(Boolean); if (r.bad.length) return badForm(r); }
+      track("5d_erro_ao_gerar_pix"); // se o Pix direto falhar, cai no Mercado Pago (que também tem Pix)
+    }
+    const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body });
     const data = await res.json().catch(() => ({}));
-    btns.forEach((b) => { b.disabled = false; b.textContent = b.dataset.t; });
     if (!res.ok || !data.url) {
+      restore();
       if (data.fields) { const map = { name: r.f.name, email: r.f.email, whatsapp: r.f.whatsapp }; r.bad = data.fields.map((k) => map[k]).filter(Boolean); if (r.bad.length) return badForm(r); }
       throw new Error(data.error || "erro");
     }
@@ -447,8 +459,51 @@ async function checkout() {
     location.href = data.url;
   } catch (e) {
     track("5d_erro_ao_abrir_pagamento"); sfx.error(); toast("Não consegui abrir o pagamento agora. Tenta de novo em alguns segundos.");
-    btns.forEach((b) => { b.disabled = false; b.textContent = b.dataset.t; });
+    restore();
   }
+}
+
+// ---------- Pix na própria página ----------
+let pixTimer = null;
+function showPix(d) {
+  $("#pixbox")?.remove(); clearTimeout(pixTimer);
+  const box = document.createElement("div"); box.id = "pixbox"; box.className = "pixbox";
+  box.innerHTML = `
+    <div class="pixcard" role="dialog" aria-label="Pagamento via Pix">
+      <button class="pixclose" id="pixclose" aria-label="Fechar">✕</button>
+      <div class="phase" style="margin:0 0 6px">💠 PAGUE COM PIX</div>
+      <div class="pixtotal">${brl(d.total)}</div>
+      <ol class="pixsteps"><li>Toca em <b>COPIAR CÓDIGO PIX</b></li><li>Abre o app do seu banco → <b>Pix Copia e Cola</b></li><li>Cola, confirma e pronto: o acesso libera aqui na hora</li></ol>
+      <button class="btn green pulse" id="pixcopy">COPIAR CÓDIGO PIX</button>
+      <textarea class="pixcode" id="pixcode" readonly rows="3">${esc(d.qr)}</textarea>
+      ${d.qr64 ? `<div class="pixqr"><img src="data:image/png;base64,${d.qr64}" alt="QR code do Pix" width="220" height="220"><small>No computador? Escaneia com o celular.</small></div>` : ""}
+      <div class="pixwait"><span class="dot"></span> Aguardando pagamento… <span id="pixstatus"></span></div>
+      <button class="pixpaid" id="pixpaid">Já paguei</button>
+      <div class="lock">🔒 Pix gerado pelo Mercado Pago · pedido ${esc(d.ref)}</div>
+    </div>`;
+  document.body.appendChild(box);
+  const copy = async () => {
+    const t = $("#pixcode"); let ok = false;
+    try { await navigator.clipboard.writeText(d.qr); ok = true; } catch { t.select(); try { ok = document.execCommand("copy"); } catch {} }
+    $("#pixcopy").textContent = ok ? "CÓDIGO COPIADO ✓" : "SELECIONE E COPIE O CÓDIGO ABAIXO";
+    if (ok) { sfx.coin(); track("5e_copiou_pix"); }
+  };
+  $("#pixcopy").addEventListener("click", copy);
+  $("#pixclose").addEventListener("click", () => { clearTimeout(pixTimer); box.remove(); track("5g_fechou_pix"); });
+  let tries = 0;
+  const check = async (manual) => {
+    try {
+      const r = await fetch("/api/acesso?payment_id=" + d.id); const s = await r.json();
+      if (s.status === "approved") {
+        track("5f_pix_pago"); sfx.level();
+        location.href = `/obrigado.html?status=aprovado&payment_id=${encodeURIComponent(d.id)}&ref=${encodeURIComponent(d.ref)}`; return;
+      }
+      if (manual) { $("#pixstatus").textContent = "ainda não caiu, pode levar alguns segundos"; }
+    } catch {}
+    if (++tries < 300) pixTimer = setTimeout(() => check(false), 4000); // confere por até ~20 min
+  };
+  $("#pixpaid").addEventListener("click", () => { clearTimeout(pixTimer); check(true); });
+  pixTimer = setTimeout(() => check(false), 4000);
 }
 
 // ---------- render ----------
