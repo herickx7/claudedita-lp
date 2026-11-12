@@ -2,9 +2,7 @@ import { postJSON } from "../lib/validate.js";
 
 // Marcos do funil (em que ponto cada visitante chegou). Só aceita nomes da lista,
 // e repassa pra planilha (aba Funil) pelo mesmo endereço dos leads.
-const OK = new Set(["1_entrou", "1b_ligou_som", "2_viu_pergunta", "2b_respondeu", "3_viu_demo", "3b_gerou_roteiro", "3c_pulou_demo",
-  "4_viu_oferta", "4b_abriu_modulos", "4c_adicionou_extra", "4c_comecou_dados", "4d_preencheu_dados",
-  "5_clicou_pagar", "5a_erro_nos_dados", "5b_gerou_pix", "5b_foi_pro_mercado_pago", "5c_voltou_sem_pagar", "5d_erro_ao_gerar_pix", "5d_erro_ao_abrir_pagamento", "5e_copiou_pix", "5f_pix_pago", "5g_fechou_pix"]);
+const OK = new Set(["1_entrou", "1b_ligou_som", "2_viu_demo", "3_viu_exemplos", "3b_rolou_metade", "4_viu_preco", "4a_abriu_checkout", "4z_fechou_checkout", "4c_comecou_dados", "4d_preencheu_dados", "4e_adicionou_extra", "5_clicou_pagar", "5a_erro_nos_dados", "5b_gerou_pix", "5e_copiou_pix", "5f_pix_pago", "5g_fechou_pix", "5h_foi_pro_cartao", "5b_foi_pro_mercado_pago", "5c_voltou_sem_pagar", "5d_erro_ao_gerar_pix", "5d_erro_ao_abrir_pagamento"]);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();

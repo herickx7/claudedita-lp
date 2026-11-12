@@ -11,10 +11,20 @@
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="stylesheet" href="/styles.css" />
   <style>
-    .dl { display: flex; align-items: center; gap: 10px; background: var(--panel2); border: 3px solid var(--dark); box-shadow: var(--sh); padding: 14px; margin: 10px 0; color: var(--white); text-decoration: none; font-weight: 700; }
-    .dl span { flex: 1; } .dl b { font-family: "Mono"; font-size: 12px; background: var(--yel); color: var(--dark); padding: 6px 8px; }
-    .dl.off { opacity: .5; pointer-events: none; }
-  </style>
+  .ok-ic { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; background: rgba(58,214,138,.14); color: var(--green); font-size: 30px; animation: pop .5s var(--ease) both; }
+  .ok-ic.wait { background: var(--accd); color: var(--acc); }
+  .ok-ic.bad { background: rgba(255,107,107,.14); color: var(--red); }
+  .page h1 { text-align: center; font-size: clamp(28px, 7vw, 40px); letter-spacing: -.03em; line-height: 1.1; margin: 0 0 10px; }
+  .page .sub { margin-bottom: 22px; }
+  .dl { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin: 10px 0; text-decoration: none; font-weight: 700; font-size: 15px; transition: border-color .2s, transform .2s; animation: pop .45s var(--ease) both; }
+  .dl:hover { border-color: rgba(255,196,26,.5); transform: translateY(-2px); }
+  .dl span { flex: 1; } .dl b { font-size: 12px; background: var(--acc); color: #17120a; padding: 6px 11px; border-radius: 99px; }
+  .dl.off { opacity: .5; pointer-events: none; }
+  .next { margin-top: 22px; } .next ol { margin: 0; padding-left: 20px; color: var(--mut); line-height: 1.7; } .next b { color: var(--txt); }
+  .ref { text-align: center; color: var(--mut2); font-size: 12px; margin-top: 14px; }
+  .prog { max-width: 320px; margin: 0 auto; }
+  .page .btn { display: flex; margin-top: 16px; }
+</style>
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -34,10 +44,10 @@ src="https://www.facebook.com/tr?id=1441261254273109&ev=PageView&noscript=1"
 <!-- End Meta Pixel Code -->
 </head>
 <body>
-  <div class="bg" aria-hidden="true"></div>
-  <header class="hud"><div class="brand">claudedita</div><div class="xp"><span class="xp-lvl" id="lvl">LV 7</span><div class="xp-bar"><div class="xp-fill" id="xpf" style="width:90%"></div></div></div></header>
-  <main class="stage" id="stage"></main>
-  <footer class="foot"><a href="/privacidade">Política de Privacidade</a> · <a href="/termos">Termos de Uso</a></footer>
+  <div class="glow" aria-hidden="true"></div>
+  <header class="topbar show"><a class="logo" href="/"><img src="/assets/logo.png" alt="" width="28" height="28"><span>claudedita</span></a></header>
+  <main class="page" id="stage"></main>
+  <footer class="footer" style="padding-bottom:40px"><nav><a href="/privacidade">Política de Privacidade</a><a href="/termos">Termos de Uso</a></nav></footer>
   <script>
     // (opcional) mesmo ID do Meta Pixel usado no app.js
     const PIXEL_ID = "1441261254273109";
@@ -49,26 +59,22 @@ src="https://www.facebook.com/tr?id=1441261254273109&ev=PageView&noscript=1"
     const ref = (q.get("ref") || q.get("external_reference") || "").replace(/[^\w-]/g, "");
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const $st = document.getElementById("stage");
-    const sup = SUPPORT_WHATSAPP ? `<a class="btn" style="margin-top:14px" href="https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Oi! Preciso de ajuda com o pedido " + ref + " (claudedita).")}">FALAR COM O SUPORTE</a>` : "";
+    const sup = SUPPORT_WHATSAPP ? `<a class="btn ghost block" href="https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Oi! Preciso de ajuda com o pedido " + ref + " (claudedita).")}">Falar com o suporte</a>` : "";
 
     function approved(d) {
-      document.getElementById("lvl").textContent = "LV MAX"; document.getElementById("xpf").style.width = "100%";
-      const links = (d.acessos || []).map((a) => {
+            const links = (d.acessos || []).map((a) => {
         const ok = /^https?:\/\//.test(a.url);
         return `<a class="dl ${ok ? "" : "off"}" href="${ok ? esc(a.url) : "#"}" target="_blank" rel="noopener"><span>${esc(a.label)}</span><b>${ok ? "ABRIR" : "EM BREVE"}</b></a>`;
       }).join("");
       $st.innerHTML = `
-        <section class="screen">
-          <h1 class="cap1">${d.nome ? esc(d.nome) + ", você" : "Você"}</h1><div class="cap2">ZEROU O JOGO!</div>
-          <div class="coach"><img src="/assets/avatar-thumb.png" alt="" width="96"><div class="bubble">Pagamento <b>aprovado</b>! 🎉 Seus acessos estão aqui embaixo e também foram para o e-mail <b>${esc(d.email || "cadastrado")}</b>.</div></div>
-          <div class="phase">🎁 SEUS ITENS</div>${links}
-          ${d.guia ? `<a class="btn" href="${esc(d.guia)}" target="_blank" rel="noopener" style="margin-top:14px">COMO INSTALAR A SKILL NO CLAUDE</a>` : ""}
-          <div class="panel"><div class="panel-top"><i></i><i></i><i></i>proximos_passos.txt</div><div class="panel-body" style="line-height:1.6">
-            1. Baixe os arquivos e guarde num lugar fácil.<br>2. Suba o <b>pixel-reel-editor.zip</b> no Claude (área de Skills).<br>3. Peça: "faz um vídeo nesse estilo sobre [seu tema]".
-            ${d.ref ? `<div class="sub" style="text-align:left">pedido: ${esc(d.ref)}</div>` : ""}
-          </div></div>${sup}
-        </section>`;
-      try { const s = JSON.parse(localStorage.getItem("ce_state")) || {}; s.step = 0; s.bumps = []; localStorage.setItem("ce_state", JSON.stringify(s)); } catch {}
+        <div class="ok-ic">✓</div>
+        <h1>${d.nome ? esc(d.nome.split(" ")[0]) + ", pagamento" : "Pagamento"} aprovado!</h1>
+        <p class="sub">Seus acessos estão aqui embaixo e também foram para <b>${esc(d.email || "o seu e-mail")}</b>.</p>
+        ${links}
+        ${d.guia ? `<a class="btn block" href="${esc(d.guia)}" target="_blank" rel="noopener">Como instalar a skill no Claude</a>` : ""}
+        <div class="card next"><h4>Próximos passos</h4><ol><li>Baixe o <b>pixel-reel-editor.zip</b> e guarde num lugar fácil.</li><li>No Claude, abra as <b>Configurações</b>, vá na área de <b>Skills</b> e envie o .zip.</li><li>Numa conversa nova, peça: <b>"faz um vídeo nesse estilo sobre [seu tema]"</b>.</li></ol></div>
+        ${d.ref ? `<div class="ref">pedido ${esc(d.ref)}</div>` : ""}${sup}`;
+      try { const s = JSON.parse(localStorage.getItem("ce_state")) || {}; s.bumps = []; localStorage.setItem("ce_state", JSON.stringify(s)); } catch {}
       if (PIXEL_ID && window.fbq && !sessionStorage.getItem("ce_px_" + pid)) {
         let v = 0; try { v = Number(sessionStorage.getItem("ce_total")) || 0; } catch {}
         fbq("track", "Purchase", { value: v, currency: "BRL" }); sessionStorage.setItem("ce_px_" + pid, "1");
@@ -76,20 +82,18 @@ src="https://www.facebook.com/tr?id=1441261254273109&ev=PageView&noscript=1"
     }
     function waiting(msg) {
       $st.innerHTML = `
-        <section class="screen">
-          <h1 class="cap1">Quase lá!</h1><div class="cap2">AGUARDANDO</div>
-          <div class="coach"><img src="/assets/avatar-point.png" alt="" width="96"><div class="bubble">${msg}</div></div>
-          <div class="progress"><div id="pg" style="width:10%"></div></div>
-          ${ref ? `<div class="sub">pedido: ${esc(ref)}</div>` : ""}${sup}
-        </section>`;
+        <div class="ok-ic wait">⏳</div>
+        <h1>Quase lá!</h1>
+        <p class="sub">${msg}</p>
+        <div class="prog"><i id="pg" style="width:10%"></i></div>
+        ${ref ? `<div class="ref">pedido ${esc(ref)}</div>` : ""}${sup}`;
     }
     function failed() {
       $st.innerHTML = `
-        <section class="screen">
-          <h1 class="cap1">Ops...</h1><div class="cap2">NÃO PASSOU</div>
-          <div class="coach"><img src="/assets/avatar-sad.png" alt="" width="96"><div class="bubble">O pagamento não foi aprovado. Tenta de novo, de preferência no <b>Pix</b>, que aprova na hora.</div></div>
-          <a class="btn" href="/?pagamento=falhou">TENTAR DE NOVO</a>${sup}
-        </section>`;
+        <div class="ok-ic bad">!</div>
+        <h1>O pagamento não passou</h1>
+        <p class="sub">Tenta de novo, de preferência no <b>Pix</b>, que aprova na hora e aparece na própria página.</p>
+        <a class="btn lg block" href="/?pagamento=falhou">Tentar de novo</a>${sup}`;
     }
 
     async function check(tries = 0) {

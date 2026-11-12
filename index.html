@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>claudedita — edite nesse nível só com IA</title>
-  <meta name="description" content="Aprenda a criar vídeos com edição profissional em pixel art usando só inteligência artificial. Do zero, sem saber editar." />
-  <meta name="theme-color" content="#110e26" />
-  <meta property="og:title" content="Esse vídeo foi editado 100% por IA" />
-  <meta property="og:description" content="Aprenda a editar nesse nível só com inteligência artificial." />
-  <meta property="og:image" content="/assets/anuncio-capa.jpg" />
-  <link rel="preload" href="/assets/fonts/Poppins-Bold.ttf" as="font" type="font/ttf" crossorigin />
-  <link rel="icon" href="/favicon.ico" sizes="any" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>claudedita — escreva uma frase e receba o vídeo editado</title>
+<meta name="description" content="Uma skill pro Claude que transforma uma frase em vídeo editado: roteiro com gancho, cenas, legenda e efeitos sonoros. Sem saber editar." />
+<meta name="theme-color" content="#0b0b10" />
+<meta property="og:title" content="Escreva uma frase. Receba o vídeo editado." />
+<meta property="og:description" content="O estúdio de edição que roda dentro do Claude. Sem editor, sem saber editar." />
+<meta property="og:image" content="/assets/anuncio-capa.jpg" />
+<link rel="preload" href="/assets/fonts/Poppins-Bold.ttf" as="font" type="font/ttf" crossorigin />
+<link rel="preload" href="/assets/v/titanic.jpg" as="image" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
@@ -33,25 +34,290 @@ src="https://www.facebook.com/tr?id=1441261254273109&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 </head>
-<body>
-  <div class="bg" aria-hidden="true"></div>
+<body class="lp">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="currentColor"/><path d="M5.8 10.3l2.7 2.7 5.7-5.9" fill="none" stroke="#0b0b10" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5l8-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 12l2.4 2.4 4.6-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 018 0v3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 2M9.5 3h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="8" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-pix" viewBox="0 0 24 24"><path d="M12 2.5l4 4-4 4-4-4zM12 13.5l4 4-4 4-4-4zM2.5 12l4-4 4 4-4 4zM13.5 12l4-4 4 4-4 4z" fill="currentColor"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 9.5h19M6 15h4" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
 
-  <header class="hud">
-    <div class="brand">claudedita</div>
-    <div class="xp" aria-label="Progresso">
-      <span class="xp-lvl" id="lvl">LV 1</span>
-      <div class="xp-bar"><div class="xp-fill" id="xpfill"></div></div>
+<div class="glow" aria-hidden="true"></div>
+
+<!-- topo: aparece quando a pessoa rola pra cima -->
+<header class="topbar" id="topbar">
+  <a class="logo" href="#topo" aria-label="claudedita"><img src="/assets/logo.png" alt="" width="28" height="28"><span>claudedita</span></a>
+  <button class="btn sm" data-buy="topo">Comprar</button>
+</header>
+
+<main id="topo">
+
+<!-- ================= HERO ================= -->
+<section class="hero wrap">
+  <div class="hero-txt">
+    <div class="pill in-1"><i class="dot"></i>Skill de edição de vídeo pro Claude</div>
+    <h1 class="h1 in-2">Sem tempo nem editor?<br>Escreva uma frase e<br><span class="hl">receba o vídeo pronto</span></h1>
+    <p class="lead in-3">Você tem a ideia e a vontade de postar. A skill roda no <b>Claude</b>: escreve o roteiro, monta as cenas, coloca legenda e efeitos sonoros e te entrega o vídeo pronto.</p>
+    <div class="hero-cta in-5 only-desk">
+      <button class="btn lg" data-buy="hero">Quero meu estúdio agora</button>
+      <div class="price-line"><span class="p"><small>R$</small><b data-price>47</b></span><span class="pl-t">pagamento único,<br>acesso na hora</span></div>
+      <div class="assure"><svg><use href="#i-shield"/></svg>Garantia de 7 dias <i>|</i> reembolso integral</div>
     </div>
-    <button class="mute" id="mute" aria-label="Som">🔊</button>
-  </header>
+  </div>
 
-  <main id="stage" class="stage" aria-live="polite"></main>
-  <footer class="foot"><a href="/privacidade">Política de Privacidade</a> · <a href="/termos">Termos de Uso</a></footer>
+  <div class="hero-phone in-4">
+    <div class="phone" id="heroPhone">
+      <div class="notch"></div>
+      <div class="screen-in">
+        <video class="pv on" muted playsinline webkit-playsinline preload="auto" poster="/assets/v/titanic.jpg" data-src="/assets/v/titanic.mp4" data-cap="Curiosidade com narração"></video>
+        <video class="pv" muted playsinline webkit-playsinline preload="none" poster="/assets/v/barbearia.jpg" data-src="/assets/v/barbearia.mp4" data-cap="Negócio local: barbearia"></video>
+        <video class="pv" muted playsinline webkit-playsinline preload="none" poster="/assets/v/treino.jpg" data-src="/assets/v/treino.mp4" data-cap="Fitness: treino em casa"></video>
+        <button class="sound" id="heroSound"><svg><use href="#i-sound"/></svg>Toque pra ouvir</button>
+        <div class="pbar"><i id="heroBar"></i></div>
+      </div>
+    </div>
+    <div class="chips"><span class="chip"><i class="dot"></i><b id="heroCap">Curiosidade com narração</b></span><span class="chip"><i class="dot"></i>Sem saber editar</span></div>
+  </div>
 
-  <div id="xpfloat" class="xpfloat" aria-hidden="true"></div>
-  <div id="toast" class="toast" role="status"></div>
+  <div class="hero-cta in-5 only-mob" id="heroCta">
+    <button class="btn lg" data-buy="hero">Quero meu estúdio agora</button>
+    <div class="price-line"><span class="p"><small>R$</small><b data-price>47</b></span><span class="pl-t">pagamento único,<br>acesso na hora</span></div>
+    <div class="assure"><svg><use href="#i-shield"/></svg>Garantia de 7 dias <i>|</i> reembolso integral</div>
+    <p class="req">Precisa de um computador ou celular e da assinatura do Claude (o plano Pro já serve).</p>
+  </div>
+</section>
 
-  <noscript><p style="padding:24px;color:#fff">Ative o JavaScript para continuar.</p></noscript>
-  <script src="/app.js" type="module"></script>
+<!-- ================= DEMO NO CLAUDE ================= -->
+<section class="sec wrap" id="demo" data-track="2_viu_demo">
+  <h2 class="h2 rv">Veja na prática o Claude editando um vídeo</h2>
+  <p class="sub rv">Da frase ao vídeo pronto, em quatro passos. Tudo acontece na conversa com o Claude.</p>
+  <div class="demo-grid">
+    <div class="win rv" id="win">
+      <div class="win-top"><i></i><i></i><i></i><b>Claude</b><span>claudedita</span><button class="win-pp" id="winPP" aria-label="Pausar"><svg><use href="#i-pause"/></svg></button></div>
+      <div class="win-body" id="winBody"></div>
+      <div class="win-input"><span id="winType" class="ph">Responder ao Claude…</span><i class="send"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i></div>
+    </div>
+    <ol class="steps4 rv" id="steps4">
+      <li><span class="n">1</span><b>Sobe a skill no Claude</b><i class="bar"><u></u></i></li>
+      <li><span class="n">2</span><b>Pede o tema numa frase</b><i class="bar"><u></u></i></li>
+      <li><span class="n">3</span><b>Ele monta roteiro e cenas</b><i class="bar"><u></u></i></li>
+      <li><span class="n">4</span><b>Vídeo pronto pra postar</b><i class="bar"><u></u></i></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= EXEMPLOS ================= -->
+<section class="sec" id="exemplos" data-track="3_viu_exemplos">
+  <div class="wrap">
+    <h2 class="h2 rv">Vídeos feitos só com a skill</h2>
+    <p class="sub rv">Nichos diferentes, o mesmo processo. Inclusive o anúncio que te trouxe até aqui.</p>
+  </div>
+  <div class="car rv" id="car">
+    <div class="car-track" id="carTrack">
+      <article class="vcard" data-src="/assets/v/titanic.mp4"><div class="vthumb"><img src="/assets/v/titanic.jpg" alt="Vídeo sobre o Titanic" loading="lazy"></div><h3>Curiosidade</h3><p>Narração, cenas e legenda palavra por palavra.</p><div class="ask"><small>PEDIDO</small>"Faz um vídeo sobre por que o Titanic afundou"</div></article>
+      <article class="vcard" data-src="/assets/v/barbearia.mp4"><div class="vthumb"><img src="/assets/v/barbearia.jpg" alt="Vídeo para barbearia" loading="lazy"></div><h3>Negócio local</h3><p>Conteúdo que vende o serviço sem aparecer.</p><div class="ask"><small>PEDIDO</small>"Um vídeo pra lotar a agenda da minha barbearia"</div></article>
+      <article class="vcard" data-src="/assets/v/treino.mp4"><div class="vthumb"><img src="/assets/v/treino.jpg" alt="Vídeo de treino" loading="lazy"></div><h3>Fitness</h3><p>Lista, ritmo e efeitos sonoros que prendem.</p><div class="ask"><small>PEDIDO</small>"Treino de 10 minutos em casa, sem aparelho"</div></article>
+      <article class="vcard" data-src="/assets/v/cafe.mp4"><div class="vthumb"><img src="/assets/v/cafe.jpg" alt="Vídeo sobre a origem do café" loading="lazy"></div><h3>História</h3><p>Uma história real contada em 10 segundos.</p><div class="ask"><small>PEDIDO</small>"O segredo de como o café foi descoberto"</div></article>
+      <article class="vcard" data-src="/assets/v/anuncio.mp4"><div class="vthumb"><img src="/assets/v/anuncio.jpg" alt="Anúncio do claudedita" loading="lazy"></div><h3>Anúncio</h3><p>O próprio anúncio do claudedita saiu daqui.</p><div class="ask"><small>PEDIDO</small>"Um anúncio de 30 segundos pro meu produto"</div></article>
+    </div>
+    <div class="car-ctl"><button id="carPrev" aria-label="Anterior"><svg><use href="#i-arrow"/></svg></button><span id="carN">1 de 5</span><button id="carPP" aria-label="Pausar"><svg><use href="#i-pause"/></svg></button><button id="carNext" aria-label="Próximo" class="flip"><svg><use href="#i-arrow"/></svg></button></div>
+  </div>
+</section>
+
+<!-- ================= COMPARAÇÃO ================= -->
+<section class="sec wrap narrow">
+  <h2 class="h2 rv">Uma frase, e seu vídeo está pronto!</h2>
+  <p class="sub rv">O trabalho pesado é juntar roteiro, cenas, legenda e som. A skill faz isso por você, basta mandar a ideia.</p>
+  <div class="two">
+    <div class="card rv">
+      <h4>Onde os outros desistem…</h4>
+      <ul class="dash">
+        <li><b>Editor de vídeo.</b> Você grava, corta, legenda e sincroniza tudo na mão. Horas por vídeo.</li>
+        <li><b>Templates.</b> Entregam o molde. O roteiro, as cenas e o ritmo continuam com você.</li>
+        <li><b>IA solta.</b> Gera pedaços soltos, sem padrão, e você ainda precisa montar o vídeo.</li>
+      </ul>
+    </div>
+    <div class="card hot rv">
+      <h4>O que a skill faz</h4>
+      <ul class="ticks">
+        <li><svg><use href="#i-check"/></svg><span><b>Parte do tema</b> que você escreve numa frase simples.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Escreve o roteiro</b> com gancho nos 3 primeiros segundos.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Monta as cenas</b> com personagem fixo, legenda e efeitos sonoros.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Entrega o MP4</b> em 9:16, pronto pra Reels, TikTok e Shorts.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OBJEÇÕES ================= -->
+<section class="sec wrap">
+  <h2 class="h2 rv">Pra você não ter mais dúvidas</h2>
+  <div class="qgrid">
+    <a class="qcard rv" href="#demo"><span class="ic"><svg><use href="#i-chat"/></svg></span><h4>É difícil?</h4><p>Você pede em português, numa frase. Instala uma vez e já faz o primeiro vídeo.</p><u>Ver os passos</u></a>
+    <a class="qcard rv" href="#exemplos"><span class="ic"><svg><use href="#i-star"/></svg></span><h4>Fica bom?</h4><p>Os vídeos desta página saíram da skill, sem editor e sem programa de edição.</p><u>Ver os vídeos</u></a>
+    <a class="qcard rv" href="#depois"><span class="ic"><svg><use href="#i-clock"/></svg></span><h4>Demora?</h4><p>O acesso chega logo após o pagamento. Dá pra fazer o primeiro vídeo no mesmo dia.</p><u>Ver como funciona</u></a>
+    <a class="qcard rv" href="#preco"><span class="ic"><svg><use href="#i-tag"/></svg></span><h4>Sai caro?</h4><p><b>R$ <span data-price>47</span>, uma vez só.</b> Um editor cobra por cada vídeo, todo mês.</p><u>Ver a oferta</u></a>
+  </div>
+</section>
+
+<!-- ================= PRECISA / NÃO PRECISA ================= -->
+<section class="sec wrap narrow">
+  <h2 class="h2 rv">O que você precisa<br>(e o que não)</h2>
+  <div class="two">
+    <div class="card rv">
+      <h4>Não precisa</h4>
+      <ul class="dash"><li>Saber programar</li><li>Saber editar</li><li>Aparecer ou gravar a voz</li><li>Pagar editor por vídeo</li></ul>
+    </div>
+    <div class="card hot rv">
+      <h4>Precisa</h4>
+      <ul class="ticks">
+        <li><svg><use href="#i-check"/></svg><span><b>Computador ou celular</b> (a instalação é mais fácil no computador)</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Assinatura do Claude</b> (o plano Pro já serve)</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Alguns minutinhos</b> pra conferir e postar seus vídeos</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="note rv">A voz é opcional: dá pra usar a sua, uma voz de IA gratuita ou só legenda.</p>
+</section>
+
+<!-- ================= O QUE VEM ================= -->
+<section class="sec wrap narrow">
+  <h2 class="h2 rv">Você recebe tudo isso<br>no seu acesso</h2>
+  <p class="sub rv">A skill que transforma o Claude no seu estúdio de edição, mais o passo a passo pra usar do zero. Você pede o tema, o resto sai pronto.</p>
+  <div class="kit">
+    <div class="kitem rv"><span class="k">1</span><div><b>Skill claudedita pro Claude</b><small>O estúdio de edição que roda dentro da conversa</small></div></div>
+    <div class="kitem rv"><span class="k">2</span><div><b>Roteiro com gancho</b><small>Estrutura que segura a pessoa nos 3 primeiros segundos</small></div></div>
+    <div class="kitem rv"><span class="k">3</span><div><b>Personagem fixo e cenas</b><small>O mesmo avatar em todos os vídeos, cenas geradas a partir do texto</small></div></div>
+    <div class="kitem rv"><span class="k">4</span><div><b>Legenda, efeitos sonoros e ritmo</b><small>Montagem final em 9:16, pronta pra postar</small></div></div>
+    <div class="kitem rv"><span class="k">5</span><div><b>Guia de instalação e primeiro vídeo</b><small>Do zero ao primeiro vídeo, sem pular etapa</small></div></div>
+  </div>
+</section>
+
+<!-- ================= PRA QUEM É ================= -->
+<section class="sec wrap narrow">
+  <h2 class="h2 rv">Para quem é</h2>
+  <div class="card good rv">
+    <h4>É pra você se</h4>
+    <ul class="ticks green">
+      <li><svg><use href="#i-check"/></svg><span>Quer postar vídeo toda semana sem passar horas editando</span></li>
+      <li><svg><use href="#i-check"/></svg><span>Prefere não aparecer nem gravar a própria voz</span></li>
+      <li><svg><use href="#i-check"/></svg><span>Tem um perfil que explica algo ou quer começar um: curiosidades, aulas, finanças, fé, negócio local</span></li>
+      <li><svg><use href="#i-check"/></svg><span>Faz conteúdo pra clientes e quer entregar mais rápido</span></li>
+    </ul>
+  </div>
+  <div class="card rv" style="margin-top:12px">
+    <h4>Não é pra você se</h4>
+    <ul class="ticks no">
+      <li><svg><use href="#i-x"/></svg><span>Não quer assinar o Claude</span></li>
+      <li><svg><use href="#i-x"/></svg><span>Procura promessa de seguidores ou de renda</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= DEPOIS DA COMPRA ================= -->
+<section class="sec wrap narrow" id="depois">
+  <h2 class="h2 rv">O que acontece depois<br>que você compra</h2>
+  <ol class="tl" id="tl">
+    <li><span class="n">1</span><div><b>Paga no Pix ou cartão</b><p>No Pix, o código aparece aqui mesmo na página e a aprovação leva segundos.</p></div></li>
+    <li><span class="n">2</span><div><b>Recebe o acesso na hora</b><p>Os links aparecem na tela e também chegam no seu e-mail. Confere o spam se demorar.</p></div></li>
+    <li><span class="n">3</span><div><b>Sobe a skill no Claude</b><p>O guia mostra onde clicar. É uma vez só, leva poucos minutos.</p></div></li>
+    <li><span class="n">4</span><div><b>Pede o primeiro vídeo</b><p>Escreve o tema numa frase. Se não for pra você, pede o reembolso em até 7 dias.</p></div></li>
+  </ol>
+</section>
+
+<!-- ================= PREÇO ================= -->
+<section class="sec wrap narrow" id="preco" data-track="4_viu_preco">
+  <h2 class="h2 rv">Um editor cobra por cada vídeo.<br>A skill inteira sai por <span class="hl">R$ <span data-price>47</span></span>.</h2>
+  <div class="offer rv" id="offer">
+    <div class="o-head"><img src="/assets/logo.png" alt="" width="44" height="44"><div><b>Método claudedita</b><small>Skill de edição de vídeo com IA pro Claude</small></div></div>
+    <div class="o-tag" id="oTag">PREÇO DE LANÇAMENTO</div>
+    <div class="o-price"><small>R$</small><b id="bigPrice">47</b><span><i>,00</i><em>à vista</em></span></div>
+    <div class="o-alt">ou parcelado no cartão</div>
+    <button class="btn lg block" data-buy="preco">Quero meu estúdio agora</button>
+    <p class="o-mini">Pagamento único e acesso na hora.</p>
+    <div class="o-g"><svg><use href="#i-shield"/></svg><span><b>Garantia de 7 dias.</b> Não gostou? Pede o reembolso e recebe os R$ <span data-price>47</span> de volta.</span></div>
+    <div class="o-list"><small>O que vem</small>
+      <ul class="ticks">
+        <li><svg><use href="#i-check"/></svg><span><b>Skill claudedita pro Claude</b><em>Roteiro, cenas, legenda e efeitos sonoros</em></span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Personagem fixo</b><em>O mesmo avatar em todos os vídeos</em></span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Guia de instalação e primeiro vídeo</b><em>Do zero, feito pra leigo</em></span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="howget rv">
+    <h4>Como você recebe</h4>
+    <ul>
+      <li><svg><use href="#i-pix"/></svg><span><b>Pagamento aprovado</b>Pix na hora, sem sair da página.</span></li>
+      <li><svg><use href="#i-mail"/></svg><span><b>Acesso na tela e no e-mail</b>Os links chegam logo após a aprovação.</span></li>
+      <li><svg><use href="#i-down"/></svg><span><b>Sobe a skill no Claude</b>Uma vez só, seguindo o guia.</span></li>
+      <li><svg><use href="#i-chat"/></svg><span><b>Pede o primeiro vídeo</b>Escreve o tema numa frase.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="sec wrap narrow" id="faq">
+  <h2 class="h2 rv">Perguntas frequentes</h2>
+  <div class="faq rv">
+    <details><summary>O que é o claudedita?</summary><p>Uma skill (um pacote de instruções e ferramentas) que você instala no Claude. Com ela, o Claude escreve o roteiro, monta as cenas, coloca legenda e efeitos sonoros e te entrega o vídeo pronto em MP4.</p></details>
+    <details><summary>Preciso saber programar ou editar vídeo?</summary><p>Não. Você conversa em português, numa frase. A parte técnica fica com o Claude.</p></details>
+    <details><summary>Preciso pagar o Claude?</summary><p>Sim. A skill roda dentro do Claude, então você precisa de uma assinatura (o plano Pro já serve). Ela é contratada direto com a Anthropic, à parte.</p></details>
+    <details><summary>Funciona no celular?</summary><p>Funciona. A instalação da skill é mais fácil pelo computador, mas depois você pode pedir vídeos pelo app do Claude.</p></details>
+    <details><summary>E a voz?</summary><p>É opcional. Dá pra usar a sua voz, uma voz de IA gratuita ou fazer só com legenda e efeitos sonoros.</p></details>
+    <details><summary>É pagamento único?</summary><p>Sim. Você paga uma vez e usa quantas vezes quiser. Sem mensalidade do claudedita.</p></details>
+    <details><summary>Como eu recebo o acesso?</summary><p>Assim que o pagamento é aprovado, os links aparecem na tela e chegam no seu e-mail. No Pix a aprovação leva segundos.</p></details>
+    <details><summary>E se eu não gostar?</summary><p>Você tem 7 dias de garantia. Pede o reembolso e devolvemos 100% do valor.</p></details>
+    <details><summary>Quanto tempo até o primeiro vídeo?</summary><p>Dá pra instalar e fazer o primeiro vídeo no mesmo dia.</p></details>
+  </div>
+</section>
+
+<!-- ================= FINAL ================= -->
+<section class="sec wrap narrow final">
+  <h2 class="h2 big reveal-words" id="finalH">Seu próximo vídeo está a uma <span class="hl">frase.</span></h2>
+  <p class="sub rv">Skill completa por R$ <span data-price>47</span>, pagamento único. Preço de lançamento.</p>
+  <button class="btn lg block rv" data-buy="final">Quero meu estúdio agora</button>
+  <div class="assure rv"><svg><use href="#i-shield"/></svg>7 dias de garantia. Dúvidas? <a href="https://instagram.com/claudedita" target="_blank" rel="noopener">Chama no direct do Instagram</a>.</div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="logo"><img src="/assets/logo.png" alt="" width="24" height="24"><span>claudedita</span></div>
+  <nav><a href="/termos">Termos de uso</a><a href="/privacidade">Privacidade</a><a href="https://instagram.com/claudedita" target="_blank" rel="noopener">@claudedita</a></nav>
+  <p>Não somos afiliados, patrocinados nem endossados pela Anthropic. Claude é uma marca da Anthropic. Resultados dependem do tema, do nicho e da constância de cada pessoa; nenhum número de seguidores, visualizações ou renda é garantido. Os vídeos desta página foram feitos com a própria skill.</p>
+  <p>© 2026 claudedita</p>
+</footer>
+
+<!-- barra fixa embaixo -->
+<div class="sticky" id="sticky">
+  <div class="st-p"><b>R$ <span data-price>47</span></b><small>pagamento único</small></div>
+  <button class="btn" data-buy="sticky">Quero meu estúdio</button>
+</div>
+
+<!-- checkout em gaveta -->
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-label="Finalizar pedido">
+    <div class="grab"></div>
+    <button class="x" data-close aria-label="Fechar">✕</button>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+<noscript><p style="padding:24px;color:#fff">Ative o JavaScript para comprar.</p></noscript>
+<script src="/app.js" type="module"></script>
 </body>
 </html>
